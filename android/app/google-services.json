@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "759711685477",
+    "project_id": "akiramenai-76343",
+    "storage_bucket": "akiramenai-76343.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:759711685477:android:e82bd918bf20c641dfdf8c",
+        "android_client_info": {
+          "package_name": "com.example.flutter_at_akira_menai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEWkM7gZKU1WWR75JisIl--vzq7dB9Iac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
