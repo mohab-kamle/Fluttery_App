@@ -1,20 +1,27 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/home_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'firebase_options.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //initialize firebase
+  // Load the environment variables
+  await dotenv.load(fileName: ".env");
+
+  // Initialize Firebase
   await Firebase.initializeApp(
-   options: DefaultFirebaseOptions.currentPlatform,
+    options: DefaultFirebaseOptions.currentPlatform,
   );
-  //initilize Hivebox
-  final dir = await getApplicationDocumentsDirectory(); // get directory path
+
+  // Initialize Hive box
+  final dir = await getApplicationDocumentsDirectory(); // Get directory path
   Hive.init(dir.path); // Initialize Hive with directory
   await Hive.openBox('myBox');
-  //run the app
+
+  // Run the app
   runApp(const MainApp());
 }
 
