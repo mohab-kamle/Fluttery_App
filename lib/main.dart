@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_at_akira_menai/homePage.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  //initilize Hivebox
+  final dir = await getApplicationDocumentsDirectory(); // get directory path
+  Hive.init(dir.path); // Initialize Hive with directory
+  await Hive.openBox('myBox');
+  //run the app
   runApp(const MainApp());
 }
 
@@ -9,13 +18,9 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+      home: const Homepage(),
     );
   }
 }

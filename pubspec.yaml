@@ -1,5 +1,5 @@
 name: flutter_at_akira_menai
-description: "A new Flutter project."
+description: "still waiting for the next akira menai"
 publish_to: 'none'
 version: 0.1.0
 
@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  hive: ^2.2.3
+  path_provider: ^2.1.1
 
 dev_dependencies:
   flutter_test:
