@@ -7,6 +7,7 @@
 1. **User Authentication**
    - Email/password login
    - Google/Facebook sign-in (optional)
+   - user profile
 
 2. **Task Management**
    - Add, edit, delete tasks

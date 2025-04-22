@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_at_akira_menai/home_page.dart';
+import 'package:flutter_at_akira_menai/navigation_page.dart';
 import 'package:flutter_at_akira_menai/login_page.dart';
-import 'package:flutter_at_akira_menai/widgets/google_sign_in.dart';
+import 'package:flutter_at_akira_menai/widgets/google_auth.dart';
 import 'package:flutter_at_akira_menai/widgets/switch_mode.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -13,13 +13,7 @@ class PasswordValidationResult {
 }
 
 class SignUpPage extends StatefulWidget {
-  final bool isDarkMode;
-  final ValueChanged<bool> onThemeChanged;
-  const SignUpPage({
-    super.key,
-    required this.isDarkMode,
-    required this.onThemeChanged,
-  });
+  const SignUpPage({super.key});
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
@@ -82,8 +76,7 @@ class _SignUpPageState extends State<SignUpPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SwitchMode(
-                isDarkMode: widget.isDarkMode,
-                onThemeChanged: widget.onThemeChanged,
+                
               ),
               const SizedBox(height: 50),
               Form(
@@ -188,11 +181,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     context,
                                     MaterialPageRoute(
                                       builder:
-                                          (context) => HomePage(
-                                            isDarkMode: widget.isDarkMode,
-                                            onThemeChanged:
-                                                widget.onThemeChanged,
-                                          ),
+                                          (context) => const NavigationPage(),
                                     ),
                                   );
                                 }
@@ -242,8 +231,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               MaterialPageRoute(
                                 builder:
                                     (context) => LoginPage(
-                                      isDarkMode: widget.isDarkMode,
-                                      onThemeChanged: widget.onThemeChanged,
+                                      
                                     ),
                               ),
                             );
@@ -261,10 +249,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               context,
                               MaterialPageRoute(
                                 builder:
-                                    (context) => HomePage(
-                                      isDarkMode: widget.isDarkMode,
-                                      onThemeChanged: widget.onThemeChanged,
-                                    ),
+                                    (context) => const NavigationPage(),
                               ),
                             );
                           } else {

@@ -1,16 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_at_akira_menai/home_page.dart';
+import 'package:flutter_at_akira_menai/navigation_page.dart';
 import 'package:flutter_at_akira_menai/widgets/switch_mode.dart';
 
 class LoginPage extends StatefulWidget {
-  final bool isDarkMode;
-  final ValueChanged<bool> onThemeChanged;
-  const LoginPage({
-    super.key,
-    required this.isDarkMode,
-    required this.onThemeChanged,
-  });
+  const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -45,10 +39,7 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(
-            isDarkMode: widget.isDarkMode,
-            onThemeChanged: widget.onThemeChanged,
-          ),
+          builder: (context) => const NavigationPage(),
         ),
       );
     } on FirebaseAuthException catch (e) {
@@ -70,8 +61,7 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SwitchMode(
-                  isDarkMode: widget.isDarkMode,
-                  onThemeChanged:  widget.onThemeChanged,
+                  
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
