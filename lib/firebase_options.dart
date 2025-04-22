@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAEWkM7gZKU1WWR75JisIl--vzq7dB9Iac',
-    appId: '1:759711685477:android:e82bd918bf20c641dfdf8c',
+    appId: '1:759711685477:android:7381277483c0e18fdfdf8c',
     messagingSenderId: '759711685477',
     projectId: 'akiramenai-76343',
     storageBucket: 'akiramenai-76343.firebasestorage.app',
@@ -59,10 +59,13 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCS7TlaY4RM6xdk3jcJYH07ybjEeUnpghw',
-    appId: '1:759711685477:ios:128e3527dc9475f9dfdf8c',
+    appId: '1:759711685477:ios:66266a458c4f7eacdfdf8c',
     messagingSenderId: '759711685477',
     projectId: 'akiramenai-76343',
     storageBucket: 'akiramenai-76343.firebasestorage.app',
-    iosBundleId: 'com.example.flutterAtAkiraMenai',
+    androidClientId: '759711685477-a9v9k4c43ujqkmk81uvoqhmlhl5ou6gq.apps.googleusercontent.com',
+    iosClientId: '759711685477-jgmat5su4vuidhf7nt664tkdricg1fkm.apps.googleusercontent.com',
+    iosBundleId: 'com.example.Temply',
   );
+
 }
