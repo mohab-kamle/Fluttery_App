@@ -12,16 +12,17 @@ import 'firebase_options.dart';
 
 void main() async { 
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Hive
+  await Hive.initFlutter();
+  await Hive.openBox('images');  // Add this line
+  await Hive.openBox('settings'); // Open the settings box
   // Load the environment variables
   await dotenv.load(fileName: ".env");
 
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialize Hive box
-  await Hive.initFlutter(); // Initialize Hive with directory
-  await Hive.openBox('settings'); // Open the settings box
-  await Hive.openBox('images');
 
   // Run the app
   runApp(

@@ -1,7 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/change_password_page.dart';
 import 'package:flutter_at_akira_menai/signup_page.dart';
+import 'package:flutter_at_akira_menai/widgets/auth_manager.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_at_akira_menai/providers/theme_provider.dart';
@@ -74,7 +74,7 @@ class _SettingsPageState extends State<SettingsPage> {
               TextButton(
                 onPressed: () async {
                   try {
-                    await FirebaseAuth.instance.signOut();
+                    signOutUser();
                     if (context.mounted) {
                       Navigator.pushAndRemoveUntil(
                         context,
@@ -122,7 +122,6 @@ class _SettingsPageState extends State<SettingsPage> {
             },
             secondary: Icon(
               isDarkMode ? Icons.dark_mode : Icons.light_mode,
-              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           const Divider(),
@@ -137,7 +136,6 @@ class _SettingsPageState extends State<SettingsPage> {
             },
             secondary: Icon(
               Icons.notifications,
-              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           const Divider(),
@@ -145,7 +143,6 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Change Password'),
             leading: Icon(
               Icons.lock_reset,
-              color: Theme.of(context).colorScheme.primary,
             ),
             onTap: () {
               Navigator.push(
@@ -162,7 +159,6 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: Text(_appVersion),
             leading: Icon(
               Icons.info,
-              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           const Divider(),
