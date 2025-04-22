@@ -63,7 +63,7 @@ class _LoginPageState extends State<LoginPage> {
                 SwitchMode(
                   
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 21),
                 TextFormField(
                   controller: emailController,
                   validator: (value) {
