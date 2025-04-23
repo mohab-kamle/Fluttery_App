@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/settings.dart';
 import 'package:flutter_at_akira_menai/user_profile.dart';
+import 'package:flutter_at_akira_menai/Tasks_Page.dart';
 
 class NavigationPage extends StatefulWidget {
   const NavigationPage({super.key});
@@ -16,6 +17,7 @@ class _NavigationPageState extends State<NavigationPage> {
 
   final List<Widget> _pages = [
     const Placeholder(), // Replace with HomeScreen()
+    const Taskspage(),
     const SettingsPage(),
     const UserProfile(),
   ];
@@ -41,6 +43,7 @@ class _NavigationPageState extends State<NavigationPage> {
           type: BottomNavigationBarType.fixed,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.task), label: 'Tasks'),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings),
               label: 'Settings',
