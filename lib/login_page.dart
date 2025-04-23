@@ -58,8 +58,25 @@ class _LoginPageState extends State<LoginPage> {
           child: Form(
             key: _formKey,
             child: Column(
+
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Text(
+                  'Welcome Back',
+                  style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Enter your credentials to continue',
+                  style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                ),
+                const SizedBox(height: 24),
                 SwitchMode(
                   
                 ),
@@ -113,11 +130,13 @@ class _LoginPageState extends State<LoginPage> {
                   },
                   child: const Text('Login'),
                 ),
+                const SizedBox(height: 30),
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text('Don\'t have an account? Sign up'),
+                  child: const Text('Don\'t have an account? Sign up' ,
+                      style: TextStyle(fontSize: 14)),
                 ),
               ],
             ),

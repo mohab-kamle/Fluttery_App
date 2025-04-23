@@ -11,7 +11,7 @@ plugins {
     id("org.jetbrains.kotlin.android") version "1.8.22" apply false
 
     // The google-services plugin is required to parse the google-services.json file
-    id("com.google.gms.google-services") version "4.4.2" apply false
+    id("com.google.gms.google-services") version "4.3.15" apply false
 }
 
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()

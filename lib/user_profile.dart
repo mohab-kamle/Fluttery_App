@@ -27,12 +27,6 @@ class _UserProfileState extends State<UserProfile> {
   File? _backgroundImage;
   final ImagePicker _picker = ImagePicker();
 
-@override
-void dispose() {
-  Hive.box('images').close();
-  super.dispose();
-}
-
   // Load the image paths when the profile is loaded
   @override
   void initState() {
