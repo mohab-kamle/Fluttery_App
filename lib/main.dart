@@ -4,25 +4,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/navigation_page.dart';
 import 'package:flutter_at_akira_menai/on_boarding.dart';
 import 'package:flutter_at_akira_menai/providers/theme_provider.dart';
+import 'package:flutter_at_akira_menai/widgets/task_model.dart';
 import 'package:flutter_at_akira_menai/widgets/themes.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
-void main() async { 
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Hive
   await Hive.initFlutter();
-  await Hive.openBox('images');  // Add this line
+
+  Hive.registerAdapter(TaskAdapter()); // Register the Task adapter
+
+  await Hive.openBox('images'); // Add this line
   await Hive.openBox('settings'); // Open the settings box
+  await Hive.openBox('tasks'); // Open the tasks box
   // Load the environment variables
   await dotenv.load(fileName: ".env");
 
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
 
   // Run the app
   runApp(

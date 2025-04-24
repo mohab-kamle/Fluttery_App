@@ -2,12 +2,31 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+
+//part 'task.g.dart';
+
+class Task {
+  String title;
+  String description;
+  DateTime date;
+  String time;
+  String priority;
+
+  Task({
+    required this.title,
+    required this.description,
+    required this.date,
+    required this.time,
+    required this.priority,
+  });
+}
 
 class TaskPage extends StatefulWidget {
   const TaskPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => _TaskPageState();
+  _TaskPageState createState() => _TaskPageState();
 }
 
 class _TaskPageState extends State<TaskPage> {
@@ -187,7 +206,7 @@ class _TaskPageState extends State<TaskPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
+        onPressed: () async {
           if (Title.isEmpty || Description.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Please fill in all fields')),
@@ -195,13 +214,39 @@ class _TaskPageState extends State<TaskPage> {
             return;
           }
 
-          // Save the task to the database or perform any action
-          print(
-            'Task Saved: $Title, $Description, $Date, ${Time.format(context)}, $Priority',
+          // Create a Task object
+          final task = Task(
+            title: Title,
+            description: Description,
+            date: Date,
+            time: Time.format(context),
+            priority: Priority,
           );
+
+          // Save the task to Hive
+          final box = Hive.box('tasks'); // error in saving in app
+          await box.add(task);
+
+          // Print all tasks for debugging
+          for (var task in box.values) {
+            print(
+              "Title: ${task.title}, Date: ${task.date}, Priority: ${task.priority}",
+            );
+          }
+
+          // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Task Saved Successfully!')),
           );
+
+          // Optionally, clear the form or navigate back
+          setState(() {
+            Title = '';
+            Description = '';
+            _dateController.text = Date.toLocal().toString().split(' ')[0];
+            _timeController.text = Time.format(context);
+            Priority = 'Medium';
+          });
         },
         label: const Text('Save Task'),
         icon: const Icon(Icons.save),
