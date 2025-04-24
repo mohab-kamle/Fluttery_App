@@ -1,40 +1,20 @@
-// ignore: file_names
-// ignore_for_file: non_constant_identifier_names
-
 import 'package:flutter/material.dart';
+import 'package:flutter_at_akira_menai/models/task_model.dart';
 import 'package:hive/hive.dart';
-
-//part 'task.g.dart';
-
-class Task {
-  String title;
-  String description;
-  DateTime date;
-  String time;
-  String priority;
-
-  Task({
-    required this.title,
-    required this.description,
-    required this.date,
-    required this.time,
-    required this.priority,
-  });
-}
 
 class TaskPage extends StatefulWidget {
   const TaskPage({super.key});
 
   @override
-  _TaskPageState createState() => _TaskPageState();
+  State<TaskPage> createState() => _TaskPageState();
 }
 
 class _TaskPageState extends State<TaskPage> {
-  String Title = '';
-  String Description = '';
-  DateTime Date = DateTime.now(); // Default to the current date
-  TimeOfDay Time = TimeOfDay.now(); // Default to the current time
-  String Priority = 'Medium'; // Default priority
+  String title = '';
+  String description = '';
+  DateTime date = DateTime.now(); // Default to the current date
+  TimeOfDay time = TimeOfDay.now(); // Default to the current time
+  String priority = 'Medium'; // Default priority
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
 
@@ -43,14 +23,14 @@ class _TaskPageState extends State<TaskPage> {
     super.initState();
     // Set the initial value for the date field
     _dateController.text =
-        Date.toLocal().toString().split(' ')[0]; // Format as YYYY-MM-DD
+        date.toLocal().toString().split(' ')[0]; // Format as YYYY-MM-DD
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Set the initial value for the time field after context is available
-    _timeController.text = Time.format(context); // Format as HH:MM AM/PM
+    _timeController.text = time.format(context); // Format as HH:MM AM/PM
   }
 
   @override
@@ -87,7 +67,7 @@ class _TaskPageState extends State<TaskPage> {
                 ),
                 onChanged: (value) {
                   setState(() {
-                    Title = value;
+                    title = value;
                   });
                 },
               ),
@@ -107,7 +87,7 @@ class _TaskPageState extends State<TaskPage> {
                 ),
                 onChanged: (value) {
                   setState(() {
-                    Description = value;
+                    description = value;
                   });
                 },
               ),
@@ -130,15 +110,15 @@ class _TaskPageState extends State<TaskPage> {
                 onTap: () async {
                   DateTime? pickedDate = await showDatePicker(
                     context: context,
-                    initialDate: Date,
+                    initialDate: date,
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
                   );
                   if (pickedDate != null) {
                     setState(() {
-                      Date = pickedDate;
+                      date = pickedDate;
                       _dateController.text =
-                          Date.toLocal().toString().split(' ')[0];
+                          date.toLocal().toString().split(' ')[0];
                     });
                   }
                 },
@@ -162,24 +142,24 @@ class _TaskPageState extends State<TaskPage> {
                 onTap: () async {
                   TimeOfDay? pickedTime = await showTimePicker(
                     context: context,
-                    initialTime: Time,
+                    initialTime: time,
                   );
                   if (pickedTime != null) {
                     setState(() {
-                      Time = pickedTime;
-                      _timeController.text = Time.format(context);
+                      time = pickedTime;
+                      _timeController.text = time.format(context);
                     });
                   }
                 },
               ),
               const SizedBox(height: 16),
               const Text(
-                'Priority',
+                'priority',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: Priority,
+                value: priority,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -196,7 +176,7 @@ class _TaskPageState extends State<TaskPage> {
                         .toList(),
                 onChanged: (value) {
                   setState(() {
-                    Priority = value!;
+                    priority = value!;
                   });
                 },
               ),
@@ -207,7 +187,7 @@ class _TaskPageState extends State<TaskPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          if (Title.isEmpty || Description.isEmpty) {
+          if (title.isEmpty || description.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Please fill in all fields')),
             );
@@ -216,11 +196,11 @@ class _TaskPageState extends State<TaskPage> {
 
           // Create a Task object
           final task = Task(
-            title: Title,
-            description: Description,
-            date: Date,
-            time: Time.format(context),
-            priority: Priority,
+            title: title,
+            description: description,
+            date: date,
+            time: time.format(context),
+            priority: priority,
           );
 
           // Save the task to Hive
@@ -228,24 +208,28 @@ class _TaskPageState extends State<TaskPage> {
           await box.add(task);
 
           // Print all tasks for debugging
-          for (var task in box.values) {
-            print(
-              "Title: ${task.title}, Date: ${task.date}, Priority: ${task.priority}",
-            );
-          }
+          // for (var task in box.values) {
+          //   print(
+          //     "Title: ${task.title}, Date: ${task.date}, priority: ${task.priority}",
+          //   );
+          // }
 
+          
           // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
+          if(context.mounted){
+            ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Task Saved Successfully!')),
           );
+          }
+          
 
           // Optionally, clear the form or navigate back
           setState(() {
-            Title = '';
-            Description = '';
-            _dateController.text = Date.toLocal().toString().split(' ')[0];
-            _timeController.text = Time.format(context);
-            Priority = 'Medium';
+            title = '';
+            description = '';
+            _dateController.text = date.toLocal().toString().split(' ')[0];
+            _timeController.text = time.format(context);
+            priority = 'Medium';
           });
         },
         label: const Text('Save Task'),

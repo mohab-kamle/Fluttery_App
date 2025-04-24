@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/settings.dart';
 import 'package:flutter_at_akira_menai/user_profile.dart';
-import 'package:flutter_at_akira_menai/Tasks_Page.dart';
+import 'package:flutter_at_akira_menai/tasks_page.dart';
 
 class NavigationPage extends StatefulWidget {
   const NavigationPage({super.key});

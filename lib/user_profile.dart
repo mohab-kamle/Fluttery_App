@@ -63,6 +63,7 @@ class _UserProfileState extends State<UserProfile> {
       : await Permission.photos.request();
 
   if (!status.isGranted) {
+    if(!mounted) return;
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

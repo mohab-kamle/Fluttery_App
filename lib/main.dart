@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/navigation_page.dart';
 import 'package:flutter_at_akira_menai/on_boarding.dart';
 import 'package:flutter_at_akira_menai/providers/theme_provider.dart';
-import 'package:flutter_at_akira_menai/widgets/task_model.dart';
+import 'package:flutter_at_akira_menai/models/task_model.dart';
 import 'package:flutter_at_akira_menai/widgets/themes.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';

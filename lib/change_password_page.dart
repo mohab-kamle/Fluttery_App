@@ -66,6 +66,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               },
             );
         await FirebaseAuth.instance.signOut();
+        if(!mounted) return;
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
