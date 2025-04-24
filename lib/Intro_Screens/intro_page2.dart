@@ -12,8 +12,10 @@ class IntroPage2 extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF1E88E5),  // Light Blue
-            Color.fromARGB(255, 0, 0, 0),  // Dark Blue
+            Color.fromARGB(255, 255, 255, 255),
+            Color.fromARGB(255, 80, 162, 255),  // Light Blue
+            Color.fromARGB(255, 28, 56, 89),
+            Colors.black  // Dark Blue
           ],
         ),
       ),

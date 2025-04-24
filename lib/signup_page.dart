@@ -1,7 +1,9 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/navigation_page.dart';
 import 'package:flutter_at_akira_menai/login_page.dart';
 import 'package:flutter_at_akira_menai/providers/theme_provider.dart';
+import 'package:flutter_at_akira_menai/widgets/awsome_material_banner.dart';
 import 'package:flutter_at_akira_menai/widgets/google_auth.dart';
 import 'package:flutter_at_akira_menai/widgets/switch_mode.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -161,6 +163,9 @@ class _SignUpPageState extends State<SignUpPage> {
                             prefixIcon: const Icon(Icons.password),
                             labelText: 'Enter your password',
                             border: const OutlineInputBorder(),
+                            helperStyle: const TextStyle(
+                              fontSize: 8,
+                            ),
                             helperText:
                                 'Minimum 8 characters, 1 uppercase, 1 lowercase',
                             suffixIcon: IconButton(
@@ -209,49 +214,34 @@ class _SignUpPageState extends State<SignUpPage> {
                                         );
                                     if (context.mounted &&
                                         credential.user != null) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Account created successfully!',
-                                          ),
-                                        ),
-                                      );
+                                      awesomeMaterialBanner(context: context, title: 'Great !', message: 'account created succesfully', contentType: ContentType.success);
                                       // Navigate to the home page after successful sign-up
-                                      Navigator.push(
+                                      Navigator.pushAndRemoveUntil(
                                         context,
                                         MaterialPageRoute(
                                           builder:
                                               (context) => const NavigationPage(),
                                         ),
+                                        (route) => false,
                                       );
                                     }
                                   } on FirebaseAuthException catch (e) {
                                     if (context.mounted &&
                                         e.code == 'weak-password') {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'The password provided is too weak.',
-                                          ),
-                                        ),
-                                      );
+                                          awesomeMaterialBanner(context: context, title: 'Sorry', message: 'The password provided is too weak.', contentType: ContentType.warning);
                                     } else if (context.mounted &&
                                         e.code == 'email-already-in-use') {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'The account already exists for that email.',
-                                          ),
-                                        ),
-                                      );
+                                      awesomeMaterialBanner(context: context, title: 'Sorry', message: 'The account already exists for that email.', contentType: ContentType.warning);
+                                    }
+                                    else{
+                                      if(context.mounted){
+                                        awesomeMaterialBanner(context: context, title: 'Sorry', message: 'An error occurred: $e', contentType: ContentType.failure);
+                                      }
+                                      
                                     }
                                   } catch (e) {
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('An error occurred: $e'),
-                                        ),
-                                      );
+                                      awesomeMaterialBanner(context: context, title: 'Sorry', message: 'An error occurred: $e', contentType: ContentType.failure);
                                     }
                                   } finally {
                                     setState(() => _isSubmitting = false);
@@ -301,11 +291,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 );
                               } else {
                                 if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Failed to sign in with Google'),
-                                  ),
-                                );
+                                awesomeMaterialBanner(context: context, title: 'please try again', message: 'Failed to sign in with google', contentType: ContentType.failure);
                               }
                             });
                           },

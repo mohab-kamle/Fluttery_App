@@ -11,10 +11,12 @@ class IntroPage1 extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF1E88E5),  // Light Blue
-            Color.fromARGB(255, 0, 0, 0),  // Dark Blue
+            Color.fromARGB(255, 255, 255, 255),
+            Color.fromARGB(255, 80, 162, 255),  // Light Blue
+            Color.fromARGB(255, 28, 56, 89),
+            Colors.black  // Dark Blue
           ],
-        ),
+        )
       ), child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -29,6 +31,15 @@ class IntroPage1 extends StatelessWidget {
         const SizedBox(height: 50),
         Center(child: Lottie.asset('assets/animations/Animation1.json' ,
             width: 300, height: 300, fit: BoxFit.cover)),
+        const SizedBox(height: 50),
+        const Text(
+          'Your Ultimate Task Management App',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
       ],
     ));
   }

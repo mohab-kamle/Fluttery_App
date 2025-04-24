@@ -57,7 +57,7 @@ final ThemeData lightTheme = ThemeData(
   
   // Input Decoration
   inputDecorationTheme: InputDecorationTheme(
-    filled: true,
+    filled: false,
     fillColor: AppColors.surfaceLight,
     labelStyle: const TextStyle(color: AppColors.primaryLight,fontSize: 14),
     hintStyle: TextStyle(color: Colors.grey.shade600),
@@ -103,10 +103,15 @@ final ThemeData lightTheme = ThemeData(
   
   // Switch Theme
   switchTheme: SwitchThemeData(
+    trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+      return states.contains(WidgetState.selected) 
+          ? AppColors.primaryLight.withAlpha(125) 
+          : Colors.black;
+    }),
     thumbColor: WidgetStateProperty.resolveWith((states) {
       return states.contains(WidgetState.selected) 
           ? AppColors.primaryLight 
-          : Colors.grey;
+          : Colors.black;
     }),
     trackColor: WidgetStateProperty.resolveWith((states) {
       return states.contains(WidgetState.selected) 
@@ -189,7 +194,7 @@ final ThemeData darkTheme = ThemeData(
   
   // App Bar
   appBarTheme: const AppBarTheme(
-    backgroundColor: AppColors.primaryDark,
+    backgroundColor: AppColors.primaryLight,
     foregroundColor: Colors.white,
     elevation: 4,
     centerTitle: true,
@@ -204,6 +209,11 @@ final ThemeData darkTheme = ThemeData(
   
   // Switch Theme
   switchTheme: SwitchThemeData(
+    trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+      return states.contains(WidgetState.selected) 
+          ? AppColors.primaryDark.withAlpha(125) 
+          : Colors.white70;
+    }),
     thumbColor: WidgetStateProperty.resolveWith((states) {
       return states.contains(WidgetState.selected) 
           ? AppColors.primaryDark 
@@ -215,4 +225,6 @@ final ThemeData darkTheme = ThemeData(
           : Colors.grey.withAlpha(125);
     }),
   ),
+
+  // Bottom navigation bar theme
 );

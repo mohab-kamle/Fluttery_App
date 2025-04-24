@@ -1,7 +1,9 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/change_password_page.dart';
 import 'package:flutter_at_akira_menai/signup_page.dart';
 import 'package:flutter_at_akira_menai/widgets/auth_manager.dart';
+import 'package:flutter_at_akira_menai/widgets/awsome_material_banner.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_at_akira_menai/providers/theme_provider.dart';
@@ -34,9 +36,8 @@ class _SettingsPageState extends State<SettingsPage> {
         _notificationsEnabled = true;
       });
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading settings: $e')));
+        awesomeMaterialBanner(context: context, title: 
+        'oh snap!', message: 'Error loading settings: $e', contentType: ContentType.failure);
       }
     }
   }
@@ -52,9 +53,8 @@ class _SettingsPageState extends State<SettingsPage> {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving settings: $e')));
+        awesomeMaterialBanner(context: context, title:
+        'oh snap!', message: 'Error saving settings: $e', contentType: ContentType.failure);
       }
     }
   }
@@ -86,8 +86,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error signing out: $e')),
+                      awesomeMaterialBanner(
+                        context: context,
+                        title: 'oh snap!',
+                        message: 'Error signing out: $e',
+                        contentType: ContentType.failure,
                       );
                     }
                   }
@@ -107,7 +110,6 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         title: const Text('Settings'),
         centerTitle: true,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

@@ -1,6 +1,8 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/login_page.dart';
+import 'package:flutter_at_akira_menai/widgets/awsome_material_banner.dart';
 
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
@@ -68,12 +70,11 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         await FirebaseAuth.instance.signOut();
         if(!mounted) return;
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Password changed successfully. Please log in again.',
-              ),
-            ),
+          awesomeMaterialBanner(
+            context: context,
+            title: 'Success',
+            message: 'Password changed successfully. Please log in again.',
+            contentType: ContentType.success,
           );
           Navigator.pushAndRemoveUntil(
             context,
@@ -93,9 +94,12 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           errorMessage = 'No user is signed in';
         }
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(errorMessage)));
+          awesomeMaterialBanner(
+            context: context,
+            title: 'Error',
+            message: errorMessage,
+            contentType: ContentType.failure,
+          );
         }
       } finally {
         setState(() {

@@ -1,6 +1,8 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/navigation_page.dart';
+import 'package:flutter_at_akira_menai/widgets/awsome_material_banner.dart';
 import 'package:flutter_at_akira_menai/widgets/switch_mode.dart';
 
 class LoginPage extends StatefulWidget {
@@ -24,18 +26,13 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> signIn() async {
-    if (!mounted) return;
-    
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     
     try {
       await _auth.signInWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
-      
       if (!mounted) return;
-      
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -43,10 +40,13 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     } on FirebaseAuthException catch (e) {
-      scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text(e.message ?? 'An error occurred')),
+      awesomeMaterialBanner(
+        context: context,
+        title: 'oh snap!',
+        message: e.message ?? 'An error occurred',
+        contentType: ContentType.failure,
       );
-    }
+    } 
   }
 
   @override
