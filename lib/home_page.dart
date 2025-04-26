@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/habits_page.dart';
 import 'package:flutter_at_akira_menai/main.dart';
 import 'package:flutter_at_akira_menai/models/habit_model.dart';
+import 'package:flutter_at_akira_menai/models/task_model.dart';
 import 'package:flutter_at_akira_menai/providers/theme_provider.dart';
 import 'package:flutter_at_akira_menai/widgets/qoutes_services.dart';
 import 'package:flutter_at_akira_menai/widgets/themes.dart';
@@ -22,11 +23,14 @@ class _HomePageState extends State<HomePage> {
   int numberOfCompletedHabits = 0;
   int numberOfTotalHabits = Hive.box<Habit>('habits').length;
   double habitProgress = 0.0;
+  List<Task> todayTasks = []; // List to store tasks completed today
+
   @override
   void initState() {
     super.initState();
     calculateCompletedHabits();
     loadQuote();
+    loadTodayTasks(); // Load tasks completed today
   }
 
   Future<void> calculateCompletedHabits() async {
@@ -40,7 +44,8 @@ class _HomePageState extends State<HomePage> {
       }
     }
     setState(() {
-      habitProgress = completedCount / numberOfTotalHabits;
+      habitProgress =
+          numberOfTotalHabits > 0 ? completedCount / numberOfTotalHabits : 0.0;
       numberOfTotalHabits = Hive.box<Habit>('habits').length;
       numberOfCompletedHabits = completedCount;
     });
@@ -53,6 +58,24 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void loadTodayTasks() {
+    final box = Hive.box('tasks');
+    final today = DateTime.now();
+    final tasksToday =
+        box.values
+            .cast<Task>()
+            .where(
+              (task) =>
+                  task.date.year == today.year &&
+                  task.date.month == today.month &&
+                  task.date.day == today.day,
+            )
+            .toList();
+    setState(() {
+      todayTasks = tasksToday;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -62,6 +85,7 @@ class _HomePageState extends State<HomePage> {
         onRefresh: () async {
           await loadQuote();
           await calculateCompletedHabits();
+          loadTodayTasks(); // Refresh tasks on pull-to-refresh
         },
         child: ListView(
           children: [
@@ -88,7 +112,6 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                           ),
-
                           const SizedBox(height: 20),
                           Text(
                             "Today's Motivation",
@@ -103,9 +126,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           const Divider(),
-
                           const SizedBox(height: 20),
-
                           Card(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -136,23 +157,22 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       const SizedBox(height: 15),
                                       Column(
-                                        spacing: 30,
                                         mainAxisSize: MainAxisSize.max,
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceAround,
                                         children: [
                                           _summaryItem(
                                             Icons.check_circle,
-                                            '3 Tasks Today',
-                                          ), // placeholder
+                                            '${todayTasks.length} Tasks Today',
+                                          ),
                                           _summaryItem(
                                             Icons.timer,
                                             'Next Pomodoro: 2:00 PM',
-                                          ), // placeholder
+                                          ), // Placeholder
                                           _summaryItem(
                                             Icons.access_time,
                                             'Time Tracked: 1h 25m',
-                                          ), // placeholder
+                                          ), // Placeholder
                                         ],
                                       ),
                                     ],
@@ -179,7 +199,9 @@ class _HomePageState extends State<HomePage> {
                                     height: 120,
                                     width: 120,
                                     child: CircularProgressIndicator(
-                                      value: 0.6, // 60% completed
+                                      value:
+                                          todayTasks.length /
+                                          (todayTasks.length + 3), // Example: Assume max 5 tasks
                                       strokeWidth: 10,
                                       backgroundColor: Colors.grey.shade300,
                                       valueColor: AlwaysStoppedAnimation<Color>(
@@ -188,7 +210,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ),
                                   Text(
-                                    "3 / 5\nTasks",
+                                    "${todayTasks.length} / ${todayTasks.length + 5} \nTasks",
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
@@ -204,7 +226,7 @@ class _HomePageState extends State<HomePage> {
                                     height: 120,
                                     width: 120,
                                     child: CircularProgressIndicator(
-                                      value: habitProgress, // 60% completed
+                                      value: habitProgress,
                                       strokeWidth: 10,
                                       backgroundColor: Colors.grey.shade300,
                                       valueColor: AlwaysStoppedAnimation<Color>(
@@ -268,26 +290,59 @@ class _HomePageState extends State<HomePage> {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 12),
-                          Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Row(
-                                children: const [
-                                  Icon(Icons.celebration, color: Colors.green),
-                                  SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      "You completed 3 tasks today. Great job!",
-                                      style: TextStyle(fontSize: 14),
-                                    ),
+                          todayTasks.isEmpty
+                              ? Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Row(
+                                    children: const [
+                                      Icon(Icons.info, color: Colors.grey),
+                                      SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          "No tasks completed today yet.",
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
+                              )
+                              : Column(
+                                children:
+                                    todayTasks.map((task) {
+                                      return Card(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.celebration,
+                                                color: Colors.green,
+                                              ),
+                                              SizedBox(width: 12),
+                                              Expanded(
+                                                child: Text(
+                                                  "Completed: ${task.title}",
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
                               ),
-                            ),
-                          ),
                         ],
                       ),
             ),
