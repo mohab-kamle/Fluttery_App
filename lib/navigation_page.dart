@@ -1,11 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import 'package:flutter_at_akira_menai/Pomodoro_page.dart';
-=======
 import 'package:flutter_at_akira_menai/ai_chat_bot.dart';
 import 'package:flutter_at_akira_menai/home_page.dart';
->>>>>>> cba5ca37162cab8ff2a8a8ec7fd13c1712af25c0
 import 'package:flutter_at_akira_menai/user_profile.dart';
 import 'package:flutter_at_akira_menai/tasks_page.dart';
 import 'package:flutter_at_akira_menai/widgets/themes.dart';
