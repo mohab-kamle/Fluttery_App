@@ -1,10 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:flutter_at_akira_menai/Pomodoro_page.dart';
+=======
+import 'package:flutter_at_akira_menai/ai_chat_bot.dart';
+import 'package:flutter_at_akira_menai/home_page.dart';
+>>>>>>> cba5ca37162cab8ff2a8a8ec7fd13c1712af25c0
 import 'package:flutter_at_akira_menai/user_profile.dart';
 import 'package:flutter_at_akira_menai/tasks_page.dart';
 import 'package:flutter_at_akira_menai/widgets/themes.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:lottie/lottie.dart';
 
 class NavigationPage extends StatefulWidget {
   const NavigationPage({super.key});
@@ -19,7 +25,7 @@ class _NavigationPageState extends State<NavigationPage> {
   int currentPageIndex = 0;
 
   final List<Widget> _pages = [
-    const Placeholder(), // Replace with your HomeScreen()
+    const HomePage(), // Replace with your HomeScreen()
     const Taskspage(),
     const PomodoroPage(), // Replace with your PomodoroPage
     const UserProfile(),
@@ -34,6 +40,40 @@ class _NavigationPageState extends State<NavigationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        elevation: 8,
+        enableFeedback: true,
+        child: Lottie.asset(
+          'assets/animations/AnimationAiBot.json',
+          width: 100,
+          height: 100,
+        ),
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder:
+                (context) => DraggableScrollableSheet(
+                  initialChildSize: 0.8,
+                  minChildSize: 0.4,
+                  maxChildSize: 0.95,
+                  expand: false,
+                  builder:
+                      (context, scrollController) => ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(24),
+                        ),
+                        child: Material(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          child: AiChatPage(scrollController: scrollController),
+                        ),
+                      ),
+                ),
+          );
+        },
+      ),
+
       body: PageView(
         physics: const BouncingScrollPhysics(),
         controller: _pageController,
@@ -84,7 +124,7 @@ class _NavigationPageState extends State<NavigationPage> {
               tabs: const [
                 GButton(icon: Icons.home, text: 'Home'),
                 GButton(icon: Icons.task, text: 'Tasks'),
-                GButton(icon: Icons.alarm, text: 'Pomodoro'),
+                GButton(icon: Icons.alarm, text: 'Pomo'),
                 GButton(icon: Icons.person, text: 'Profile'),
               ],
             ),

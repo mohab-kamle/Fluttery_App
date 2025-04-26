@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
 
 class ThemeProvider extends ChangeNotifier {
   bool _isDarkMode = false;
+  Box? _themeBox;  // Declare a box for theme settings
 
   bool get isDarkMode => _isDarkMode;
 
@@ -12,14 +13,13 @@ class ThemeProvider extends ChangeNotifier {
 
   void toggleTheme(bool isDark) async {
     _isDarkMode = isDark;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isDark', isDark);
+    await _themeBox!.put('isDark', isDark);  // Store theme preference in 'themeBox'
     notifyListeners();
   }
 
   void _loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isDarkMode = prefs.getBool('isDark') ?? false;
+    _themeBox = await Hive.openBox('themeBox');  // Open the 'themeBox'
+    _isDarkMode = _themeBox!.get('isDark', defaultValue: false);  // Retrieve theme preference
     notifyListeners();
   }
 

@@ -88,7 +88,7 @@ class _UserProfileState extends State<UserProfile> {
               children: [
                 SafeArea(
                   child: const Text(
-                    "User Profile",
+                    "Profile",
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                 ),
