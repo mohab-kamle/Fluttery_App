@@ -20,6 +20,24 @@ final ThemeData lightTheme = ThemeData(
   primaryColor: AppColors.primaryLight,
   scaffoldBackgroundColor: AppColors.backgroundLight,
   
+  // floating action button theme
+  floatingActionButtonTheme: const FloatingActionButtonThemeData(
+    backgroundColor: AppColors.primaryLight,
+    foregroundColor: Colors.white,
+    elevation: 4,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(16)),
+    ),
+  ),
+  //card theme
+  cardTheme: const CardTheme(
+    color: AppColors.surfaceLight,
+    shadowColor: Colors.white,
+    elevation: 2,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(16)),
+    ),
+  ),
   // text button theme
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
@@ -127,6 +145,16 @@ final ThemeData darkTheme = ThemeData(
   primaryColor: AppColors.primaryDark,
   scaffoldBackgroundColor: AppColors.backgroundDark,
   
+  //card theme
+  cardTheme: const CardTheme(
+    color: AppColors.surfaceDark,
+    shadowColor: Colors.black54,
+    elevation: 2,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(16)),
+
+    ),
+  ),
   // text button theme
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
@@ -191,7 +219,15 @@ final ThemeData darkTheme = ThemeData(
       ),
     ),
   ),
-  
+  //floating action button theme
+  floatingActionButtonTheme: const FloatingActionButtonThemeData(
+    backgroundColor: AppColors.primaryLight,
+    foregroundColor: Colors.white,
+    elevation: 4,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(16)),
+    ),
+  ),
   // App Bar
   appBarTheme: const AppBarTheme(
     backgroundColor: AppColors.primaryLight,

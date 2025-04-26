@@ -1,34 +1,48 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_at_akira_menai/navigation_page.dart';
-import 'package:flutter_at_akira_menai/on_boarding.dart';
-import 'package:flutter_at_akira_menai/providers/theme_provider.dart';
-import 'package:flutter_at_akira_menai/models/task_model.dart';
-import 'package:flutter_at_akira_menai/widgets/themes.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_at_akira_menai/providers/theme_provider.dart';
+import 'package:flutter_at_akira_menai/widgets/themes.dart';
+import 'package:flutter_at_akira_menai/on_boarding.dart';
+import 'package:flutter_at_akira_menai/models/task_model.dart';
+import 'package:flutter_at_akira_menai/models/habit_model.dart';
+import 'package:flutter_at_akira_menai/widgets/notification_service.dart';
+import 'package:flutter_at_akira_menai/habits_page.dart';
 import 'firebase_options.dart';
 
-void main() async {
+/// Global instance of the NotificationService
+late NotificationService notificationService;
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive
+  // 1. Initialize time zone database once
+  tz.initializeTimeZones();
+
+  // 2. Initialize NotificationService
+  notificationService = NotificationService(FlutterLocalNotificationsPlugin());
+  await notificationService.initialize();
+
+  // 3. Initialize Hive
   await Hive.initFlutter();
+  Hive.registerAdapter(TaskAdapter());
+  Hive.registerAdapter(HabitAdapter());
+  await Hive.openBox('images');
+  await Hive.openBox('settings');
+  await Hive.openBox('tasks');
+  await Hive.openBox('themeBox');
+  await Hive.openBox<Habit>('habits');
 
-  Hive.registerAdapter(TaskAdapter()); // Register the Task adapter
-
-  await Hive.openBox('images'); // Add this line
-  await Hive.openBox('settings'); // Open the settings box
-  await Hive.openBox('tasks'); // Open the tasks box
-  // Load the environment variables
-  await dotenv.load(fileName: ".env");
-
-  // Initialize Firebase
+  // 4. Load env vars & Firebase
+  await dotenv.load(fileName: '.env');
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Run the app
+  // 5. Run the app
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeProvider(),
@@ -37,14 +51,9 @@ void main() async {
   );
 }
 
-class MainApp extends StatefulWidget {
+class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
-  @override
-  State<MainApp> createState() => _MainAppState();
-}
-
-class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -54,10 +63,9 @@ class _MainAppState extends State<MainApp> {
       darkTheme: darkTheme,
       themeMode: themeProvider.themeMode,
       debugShowCheckedModeBanner: false,
-      home:
-          FirebaseAuth.instance.currentUser != null
-              ? NavigationPage()
-              : OnBoarding(),
+      home: FirebaseAuth.instance.currentUser != null
+          ? HabitsPage(notificationService: notificationService)
+          : const OnBoarding(),
     );
   }
 }

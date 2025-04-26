@@ -7,31 +7,29 @@ ScaffoldMessengerState awesomeMaterialBanner({
   required String message,
   required ContentType contentType,
 }) {
-  final snackBar = MaterialBanner(
-                  
-                  elevation: 0,
-                  // behavior: SnackBarBehavior.floating,
-                  backgroundColor: Colors.transparent,
-                  content: AwesomeSnackbarContent(
-                    titleTextStyle: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    messageTextStyle: TextStyle(
-                      color: Colors.white,
-                      fontSize: 8,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    title: title,
-                    message: message,
+  final snackBar = SnackBar(
+    elevation: 0,
+    behavior: SnackBarBehavior.floating,
+    backgroundColor: Colors.transparent,
+    content: AwesomeSnackbarContent(
+      title: title,
+      message: message,
+      contentType: contentType,
+      titleTextStyle: TextStyle(
+        color: Colors.white,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+      ),
+      messageTextStyle: TextStyle(
+        color: Colors.white,
+        fontSize: 8,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+    duration: const Duration(seconds: 4),
+  );
 
-                    /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
-                    contentType: contentType,
-                  ),actions: const [SizedBox.shrink()],
-                );
-
-                return ScaffoldMessenger.of(context)
-                  ..hideCurrentMaterialBanner()
-                  ..showMaterialBanner(snackBar);
+  return ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(snackBar);
 }
