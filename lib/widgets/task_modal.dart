@@ -154,7 +154,7 @@ class _TaskPageState extends State<TaskPage> {
               ),
               const SizedBox(height: 16),
               const Text(
-                'priority',
+                'Priority',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -165,15 +165,12 @@ class _TaskPageState extends State<TaskPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                items:
-                    ['High', 'Medium', 'Low']
-                        .map(
-                          (priority) => DropdownMenuItem(
-                            value: priority,
-                            child: Text(priority),
-                          ),
-                        )
-                        .toList(),
+                items: ['High', 'Medium', 'Low'].map(
+                  (priority) => DropdownMenuItem(
+                    value: priority,
+                    child: Text(priority),
+                  ),
+                ).toList(),
                 onChanged: (value) {
                   setState(() {
                     priority = value!;
@@ -194,36 +191,29 @@ class _TaskPageState extends State<TaskPage> {
             return;
           }
 
-          // Create a Task object
+          // Create a Task object with completed set to false
           final task = Task(
             title: title,
             description: description,
             date: date,
             time: time.format(context),
             priority: priority,
+            completed: false,
           );
 
           // Save the task to Hive
-          final box = Hive.box('tasks'); // error in saving in app
+          final box = Hive.box('tasks');
           await box.add(task);
 
-          // Print all tasks for debugging
-          // for (var task in box.values) {
-          //   print(
-          //     "Title: ${task.title}, Date: ${task.date}, priority: ${task.priority}",
-          //   );
-          // }
-
-          
           // Show success message
-          if(context.mounted){
+          if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Task Saved Successfully!')),
-          );
+              const SnackBar(content: Text('Task Saved Successfully!')),
+            );
+            Navigator.pop(context);
           }
-          
 
-          // Optionally, clear the form or navigate back
+          // Clear the form
           setState(() {
             title = '';
             description = '';

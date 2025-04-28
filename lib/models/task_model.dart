@@ -19,11 +19,15 @@ class Task extends HiveObject {
   @HiveField(4)
   String priority;
 
+  @HiveField(5)
+  bool completed;
+
   Task({
     required this.title,
     required this.description,
     required this.date,
     required this.time,
     required this.priority,
+    this.completed = false,
   });
 }
