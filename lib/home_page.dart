@@ -261,8 +261,7 @@ class _HomePageState extends State<HomePage> {
                                     MaterialPageRoute(
                                       builder:
                                           (context) => HabitsPage(
-                                            notificationService:
-                                                notificationService,
+                                            notificationService: notificationService,
                                           ),
                                     ),
                                   );

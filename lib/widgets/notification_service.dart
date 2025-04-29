@@ -68,6 +68,30 @@ class NotificationService {
           DateTimeComponents.time, // 🔁 Repeat daily at time
     );
   }
+  Future<void> showInstantNotification(
+  int id,
+  String title,
+  String body,
+) async {
+  final NotificationDetails notificationDetails = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'habit_channel',
+      'Habit Reminders',
+      channelDescription: 'Instant habit notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+      styleInformation: BigTextStyleInformation(
+        body,      ),
+    ),
+  );
+
+  await _flutterLocalNotificationsPlugin.show(
+    id,
+    title,
+    body,
+    notificationDetails,
+  );
+}
 
   Future<void> cancelNotification(int id) async {
     await _flutterLocalNotificationsPlugin.cancel(id);

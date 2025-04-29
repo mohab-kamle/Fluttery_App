@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_at_akira_menai/navigation_page.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
@@ -12,7 +13,6 @@ import 'package:flutter_at_akira_menai/on_boarding.dart';
 import 'package:flutter_at_akira_menai/models/task_model.dart';
 import 'package:flutter_at_akira_menai/models/habit_model.dart';
 import 'package:flutter_at_akira_menai/widgets/notification_service.dart';
-import 'package:flutter_at_akira_menai/habits_page.dart';
 import 'firebase_options.dart';
 
 /// Global instance of the NotificationService
@@ -64,7 +64,7 @@ class MainApp extends StatelessWidget {
       themeMode: themeProvider.themeMode,
       debugShowCheckedModeBanner: false,
       home: FirebaseAuth.instance.currentUser != null
-          ? HabitsPage(notificationService: notificationService)
+          ? const NavigationPage()
           : const OnBoarding(),
     );
   }

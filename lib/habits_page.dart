@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/models/habit_model.dart';
 import 'package:flutter_at_akira_menai/navigation_page.dart';
+import 'package:flutter_at_akira_menai/widgets/notification_generator.dart';
 import 'package:flutter_at_akira_menai/widgets/themes.dart';
 import 'package:intl/intl.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -127,6 +129,9 @@ class _HabitsPageState extends State<HabitsPage> {
                       reminderEnabled: enableReminder,
                     );
                     habitsBox.add(newHabit);
+                    widget.notificationService.showInstantNotification(newHabit.key, "bravo !" , generateRandomNotification(
+                      userName: FirebaseAuth.instance.currentUser?.displayName,
+                    ));
                     if (enableReminder) {
                       scheduleReminder(newHabit);
                     }
