@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_at_akira_menai/Pomodoro_page.dart';
 import 'package:flutter_at_akira_menai/habits_page.dart';
 import 'package:flutter_at_akira_menai/main.dart';
 import 'package:flutter_at_akira_menai/models/habit_model.dart';
@@ -24,13 +25,33 @@ class _HomePageState extends State<HomePage> {
   int numberOfTotalHabits = Hive.box<Habit>('habits').length;
   double habitProgress = 0.0;
   List<Task> todayTasks = []; // List to store tasks completed today
+  late int pomoHours = 0;
+  late int pomoMinutes = 0;
 
   @override
   void initState() {
     super.initState();
-    calculateCompletedHabits();
-    loadQuote();
-    loadTodayTasks(); // Load tasks completed today
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Hive.openBox("pomodoro");
+      await calculateCompletedHabits();
+      await loadQuote();
+      await loadPomodoroTime();
+      loadTodayTasks();
+    });
+  }
+
+  bool isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  Future<void> loadPomodoroTime() async {
+    final box = Hive.box("pomodoro");
+    final totalFocusTime = box.get("totalFocusTime") ?? 0;
+    final totalRestTime = box.get("totalRestTime") ?? 0;
+    setState(() {
+      final totalMinutes = (totalFocusTime + totalRestTime) ~/ 60;
+      pomoHours = totalMinutes ~/ 60;
+      pomoMinutes = totalMinutes % 60;
+    });
   }
 
   Future<void> calculateCompletedHabits() async {
@@ -39,7 +60,7 @@ class _HomePageState extends State<HomePage> {
       final habit = Hive.box<Habit>('habits').getAt(i);
       if (habit != null &&
           habit.lastCompletedDate != null &&
-          habit.lastCompletedDate!.day == DateTime.now().day) {
+          isSameDay(habit.lastCompletedDate!, DateTime.now())) {
         completedCount++;
       }
     }
@@ -85,7 +106,8 @@ class _HomePageState extends State<HomePage> {
         onRefresh: () async {
           await loadQuote();
           await calculateCompletedHabits();
-          loadTodayTasks(); // Refresh tasks on pull-to-refresh
+          loadTodayTasks();
+          await loadPomodoroTime();
         },
         child: ListView(
           children: [
@@ -146,7 +168,7 @@ class _HomePageState extends State<HomePage> {
                                 child: Center(
                                   child: Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                        CrossAxisAlignment.center,
                                     children: [
                                       Text(
                                         getFormattedDate(),
@@ -157,22 +179,19 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       const SizedBox(height: 15),
                                       Column(
+                                        spacing: 10,
                                         mainAxisSize: MainAxisSize.max,
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
+                                            MainAxisAlignment.spaceEvenly,
                                         children: [
                                           _summaryItem(
                                             Icons.check_circle,
                                             '${todayTasks.length} Tasks Today',
                                           ),
                                           _summaryItem(
-                                            Icons.timer,
-                                            'Next Pomodoro: 2:00 PM',
-                                          ), // Placeholder
-                                          _summaryItem(
                                             Icons.access_time,
-                                            'Time Tracked: 1h 25m',
-                                          ), // Placeholder
+                                            'Time Tracked: ${pomoHours}h ${pomoMinutes}m',
+                                          ),
                                         ],
                                       ),
                                     ],
@@ -201,7 +220,8 @@ class _HomePageState extends State<HomePage> {
                                     child: CircularProgressIndicator(
                                       value:
                                           todayTasks.length /
-                                          (todayTasks.length + 3), // Example: Assume max 5 tasks
+                                          (todayTasks.length +
+                                              3), // Example: Assume max 5 tasks
                                       strokeWidth: 10,
                                       backgroundColor: Colors.grey.shade300,
                                       valueColor: AlwaysStoppedAnimation<Color>(
@@ -261,19 +281,22 @@ class _HomePageState extends State<HomePage> {
                                     MaterialPageRoute(
                                       builder:
                                           (context) => HabitsPage(
-                                            notificationService: notificationService,
+                                            notificationService:
+                                                notificationService,
                                           ),
                                     ),
                                   );
                                 },
                                 context,
                               ),
-                              _quickActionButton(
-                                Icons.timer,
-                                'Pomodoro',
-                                () {},
-                                context,
-                              ),
+                              _quickActionButton(Icons.timer, 'Pomodoro', () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PomodoroTimer(),
+                                  ),
+                                );
+                              }, context),
                               _quickActionButton(
                                 Icons.bar_chart,
                                 'Stats',

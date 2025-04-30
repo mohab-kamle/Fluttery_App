@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/models/habit_model.dart';
 import 'package:flutter_at_akira_menai/navigation_page.dart';
@@ -364,32 +363,6 @@ class _HabitsPageState extends State<HabitsPage> {
                                   ],
                                 ),
                                 const SizedBox(height: 10),
-                                SizedBox(
-                                  height: 100,
-                                  child: BarChart(
-                                    BarChartData(
-                                      alignment: BarChartAlignment.spaceAround,
-                                      maxY: 10,
-                                      barTouchData: BarTouchData(
-                                        enabled: false,
-                                      ),
-                                      titlesData: FlTitlesData(show: false),
-                                      borderData: FlBorderData(show: false),
-                                      barGroups: [
-                                        BarChartGroupData(
-                                          x: 0,
-                                          barRods: [
-                                            BarChartRodData(
-                                              toY: habit.streak.toDouble(),
-                                              color: Colors.green,
-                                              width: 20,
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
                                 const SizedBox(height: 10),
                                 Text(
                                   '📅 Last Completed: ${habit.lastCompletedDate != null ? DateFormat.yMMMd().format(habit.lastCompletedDate!) : 'Never'}',
