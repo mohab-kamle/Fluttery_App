@@ -1,3 +1,4 @@
+// ignore: file_names
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:hive/hive.dart';
@@ -183,7 +184,14 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
                                 ),
                               ),
                               SizedBox(width: 10),
-                              Text(":",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 50),textAlign: TextAlign.center,),
+                              Text(
+                                ":",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 50,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                               SizedBox(width: 10),
                               SizedBox(
                                 width: 100,

@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
   late int pomoMinutes = 0;
 
   @override
-  void initState() {
+  void initState() async {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Hive.openBox("pomodoro");
@@ -80,7 +80,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void loadTodayTasks() {
-    final box = Hive.box('tasks');
+    final box = Hive.box<Task>('tasks');
     final today = DateTime.now();
     final tasksToday =
         box.values
@@ -222,6 +222,8 @@ class _HomePageState extends State<HomePage> {
                                           todayTasks.length /
                                           (todayTasks.length +
                                               3), // Example: Assume max 5 tasks
+                                      (todayTasks.length +
+                                          3), // Example: Assume max 5 tasks
                                       strokeWidth: 10,
                                       backgroundColor: Colors.grey.shade300,
                                       valueColor: AlwaysStoppedAnimation<Color>(
@@ -281,6 +283,8 @@ class _HomePageState extends State<HomePage> {
                                     MaterialPageRoute(
                                       builder:
                                           (context) => HabitsPage(
+                                            notificationService:
+                                                notificationService,
                                             notificationService:
                                                 notificationService,
                                           ),

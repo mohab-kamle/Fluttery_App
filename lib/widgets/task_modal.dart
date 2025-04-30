@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/models/task_model.dart';
 import 'package:hive/hive.dart';
@@ -165,12 +166,15 @@ class _TaskPageState extends State<TaskPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                items: ['High', 'Medium', 'Low'].map(
-                  (priority) => DropdownMenuItem(
-                    value: priority,
-                    child: Text(priority),
-                  ),
-                ).toList(),
+                items:
+                    ['High', 'Medium', 'Low']
+                        .map(
+                          (priority) => DropdownMenuItem(
+                            value: priority,
+                            child: Text(priority),
+                          ),
+                        )
+                        .toList(),
                 onChanged: (value) {
                   setState(() {
                     priority = value!;
@@ -184,9 +188,10 @@ class _TaskPageState extends State<TaskPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          if (title.isEmpty || description.isEmpty) {
+          final userId = FirebaseAuth.instance.currentUser?.uid;
+          if (userId == null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please fill in all fields')),
+              const SnackBar(content: Text('User not authenticated')),
             );
             return;
           }
@@ -198,7 +203,8 @@ class _TaskPageState extends State<TaskPage> {
             date: date,
             time: time.format(context),
             priority: priority,
-            completed: false,
+            done: false,
+            userId: 'userId', // Replace with actual user ID
           );
 
           // Save the task to Hive

@@ -34,7 +34,6 @@ Future<void> main() async {
   Hive.registerAdapter(HabitAdapter());
   await Hive.openBox('images');
   await Hive.openBox('settings');
-  await Hive.openBox('tasks');
   await Hive.openBox('themeBox');
   await Hive.openBox<Habit>('habits');
   await Hive.openBox("pomodoro");
@@ -63,6 +62,10 @@ class MainApp extends StatelessWidget {
       darkTheme: darkTheme,
       themeMode: themeProvider.themeMode,
       debugShowCheckedModeBanner: false,
+      home:
+          FirebaseAuth.instance.currentUser != null
+              ? const NavigationPage()
+              : const OnBoarding(),
       home:
           FirebaseAuth.instance.currentUser != null
               ? const NavigationPage()
