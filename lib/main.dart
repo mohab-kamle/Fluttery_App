@@ -37,7 +37,7 @@ Future<void> main() async {
   await Hive.openBox('tasks');
   await Hive.openBox('themeBox');
   await Hive.openBox<Habit>('habits');
-
+  await Hive.openBox("pomodoro");
   // 4. Load env vars & Firebase
   await dotenv.load(fileName: '.env');
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -63,9 +63,10 @@ class MainApp extends StatelessWidget {
       darkTheme: darkTheme,
       themeMode: themeProvider.themeMode,
       debugShowCheckedModeBanner: false,
-      home: FirebaseAuth.instance.currentUser != null
-          ? const NavigationPage()
-          : const OnBoarding(),
+      home:
+          FirebaseAuth.instance.currentUser != null
+              ? const NavigationPage()
+              : const OnBoarding(),
     );
   }
 }
