@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_at_akira_menai/ai_functions.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+
 class AiChatPage extends StatefulWidget {
   const AiChatPage({super.key, required ScrollController scrollController});
 
@@ -13,29 +14,33 @@ class _AiChatPageState extends State<AiChatPage> {
   final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
 
- Future<void> sendMessage(String message) async {
-  setState(() {
-    _messages.add({"role": "user", "content": message});
-    _isLoading = true;
-  });
+  Future<void> sendMessage(String message) async {
+    setState(() {
+      _messages.add({"role": "user", "content": message});
+      _isLoading = true;
+    });
 
-  final reply = await generateContent(_messages.last.toString(), context);
+    final reply = await generateContent(
+      _messages.last['content'] ?? '',
+      context,
+    );
 
-  setState(() {
-    _isLoading = false;
-    _messages.add({"role": "30 years experience Time and Life management coach", "content": reply});
-  });
-}
+    setState(() {
+      _isLoading = false;
+      _messages.add({"role": "assistant", "content": reply});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Determine if current theme is dark or light
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('AI Assistant'),
-        shape: const RoundedRectangleBorder(     
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         actions: [
           IconButton(
@@ -46,7 +51,9 @@ class _AiChatPageState extends State<AiChatPage> {
                 builder: (context) {
                   return AlertDialog(
                     title: Text('AI Assistant'),
-                    content: Text('This is an AI assistant that can guide you to manage your time and life effectively. Ask me anything!'),
+                    content: Text(
+                      'This is an AI assistant that can guide you to manage your time and life effectively. Ask me anything!',
+                    ),
                     actions: [
                       TextButton(
                         child: Text('OK'),
@@ -69,19 +76,26 @@ class _AiChatPageState extends State<AiChatPage> {
               itemBuilder: (context, index) {
                 final message = _messages[index];
                 final isUser = message['role'] == 'user';
+                final backgroundColor =
+                    isUser
+                        ? (isDark ? Colors.blue[700] : Colors.blue[100])
+                        : (isDark ? Colors.grey[800] : Colors.grey[300]);
                 return SizedBox(
                   width: MediaQuery.of(context).size.width * 0.7,
                   child: Align(
-                    alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                    alignment:
+                        isUser ? Alignment.centerRight : Alignment.centerLeft,
                     child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 8,
+                      ),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isUser ? Colors.blue[100] : Colors.grey[300],
+                        color: backgroundColor,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: MarkdownBody(
-                      data: message['content'] ?? ''),
+                      child: MarkdownBody(data: message['content'] ?? ''),
                     ),
                   ),
                 );
@@ -96,7 +110,9 @@ class _AiChatPageState extends State<AiChatPage> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    decoration: InputDecoration(hintText: 'Ask the assistant...'),
+                    decoration: InputDecoration(
+                      hintText: 'Ask the assistant...',
+                    ),
                     onSubmitted: (text) {
                       if (text.isNotEmpty) {
                         sendMessage(text);
@@ -114,10 +130,10 @@ class _AiChatPageState extends State<AiChatPage> {
                       _controller.clear();
                     }
                   },
-                )
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
