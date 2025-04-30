@@ -23,7 +23,7 @@ class _NavigationPageState extends State<NavigationPage> {
 
   final List<Widget> _pages = [
     const HomePage(), // Replace with your HomeScreen()
-    const Taskspage(),
+    const TasksPage(),
     const PomodoroTimer(), // Replace with your PomodoroPage
     const UserProfile(),
   ];
