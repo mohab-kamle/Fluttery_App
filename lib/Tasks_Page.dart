@@ -4,7 +4,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 
-import '../models/task_model.dart'; // Define a Hive Task model similar to Habit
+import '../models/task_model.dart';
 import '../widgets/themes.dart';
 
 class TasksPage extends StatefulWidget {
@@ -23,52 +23,84 @@ class _TasksPageState extends State<TasksPage> {
     tasksBox = Hive.box<Task>('tasks');
   }
 
-  void _showTaskDialog({Task? task, int? index}) {
+  void _showTaskDialog({Task? task}) {
     final titleController = TextEditingController(text: task?.title ?? '');
+    final descriptionController = TextEditingController(
+      text: task?.description ?? '',
+    );
     DateTime selectedDate = task?.date ?? DateTime.now();
+    String selectedPriority = task?.priority ?? 'Medium';
 
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(20),
             ),
             title: Text(task == null ? 'Add Task' : 'Edit Task'),
             content: StatefulBuilder(
               builder:
-                  (context, setModalState) => Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                        controller: titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'Task Title',
+                  (context, setModalState) => SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: titleController,
+                          decoration: const InputDecoration(
+                            labelText: 'Task Title',
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      ListTile(
-                        title: Text(
-                          'Due: ${DateFormat.yMMMd().format(selectedDate)}',
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: descriptionController,
+                          maxLines: 2,
+                          decoration: const InputDecoration(
+                            labelText: 'Description',
+                          ),
                         ),
-                        trailing: const Icon(Icons.calendar_today),
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: selectedDate,
-                            firstDate: DateTime.now().subtract(
-                              const Duration(days: 365),
-                            ),
-                            lastDate: DateTime.now().add(
-                              const Duration(days: 365),
-                            ),
-                          );
-                          if (picked != null) {
-                            setModalState(() => selectedDate = picked);
-                          }
-                        },
-                      ),
-                    ],
+                        const SizedBox(height: 10),
+                        ListTile(
+                          title: Text(
+                            'Due: ${DateFormat.yMMMd().format(selectedDate)}',
+                          ),
+                          trailing: const Icon(Icons.calendar_today),
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: selectedDate,
+                              firstDate: DateTime.now().subtract(
+                                const Duration(days: 365),
+                              ),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 365),
+                              ),
+                            );
+                            if (picked != null) {
+                              setModalState(() => selectedDate = picked);
+                            }
+                          },
+                        ),
+                        DropdownButtonFormField<String>(
+                          value: selectedPriority,
+                          decoration: const InputDecoration(
+                            labelText: 'Priority',
+                          ),
+                          items:
+                              ['Low', 'Medium', 'High']
+                                  .map(
+                                    (p) => DropdownMenuItem(
+                                      value: p,
+                                      child: Text(p),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged: (value) {
+                            if (value != null)
+                              setModalState(() => selectedPriority = value);
+                          },
+                        ),
+                      ],
+                    ),
                   ),
             ),
             actions: [
@@ -79,27 +111,24 @@ class _TasksPageState extends State<TasksPage> {
               ElevatedButton(
                 onPressed: () {
                   final userId = FirebaseAuth.instance.currentUser?.uid;
-                  if (userId == null || titleController.text.trim().isEmpty) {
+                  if (userId == null || titleController.text.trim().isEmpty)
                     return;
+
+                  final newTask = Task(
+                    userId: userId,
+                    title: titleController.text.trim(),
+                    description: descriptionController.text.trim(),
+                    date: selectedDate,
+                    time: DateFormat('HH:mm').format(DateTime.now()),
+                    priority: selectedPriority,
+                    done: task?.done ?? false,
+                  );
+
+                  if (task == null) {
+                    tasksBox.add(newTask);
+                  } else {
+                    tasksBox.put(task.key, newTask);
                   }
-
-                  // final newTask = Task(
-                  //   userId: userId,
-                  //   title: titleController.text.trim(),
-                  //   description:
-                  //       '', // Add empty description or get it from user input
-                  //   date: selectedDate,
-                  //   time: DateFormat('HH:mm:ss').format(DateTime.now()),
-                  //   priority:
-                  //       'Medium', // Replace with appropriate priority value
-                  //   done: task?.done ?? false,
-                  // );
-
-                  // if (task == null) {
-                  //   tasksBox.add(newTask);
-                  // } else {
-                  //   tasksBox.put(task.key, newTask);
-                  // }
 
                   Navigator.pop(context);
                   setState(() {});
@@ -111,13 +140,51 @@ class _TasksPageState extends State<TasksPage> {
     );
   }
 
+  void _selectTaskToEditOrDelete(String action) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final userTasks =
+        tasksBox.values
+            .where((task) => task.userId == currentUser?.uid)
+            .toList();
+
+    if (userTasks.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('No tasks to $action.')));
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder:
+          (_) => SimpleDialog(
+            title: Text('Select Task to $action'),
+            children:
+                userTasks.map((task) {
+                  return SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      if (action == 'Edit') {
+                        _showTaskDialog(task: task);
+                      } else {
+                        task.delete();
+                        setState(() {});
+                      }
+                    },
+                    child: Text(task.title),
+                  );
+                }).toList(),
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return const Center(child: Text('Not logged in'));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tasks')),
+      appBar: AppBar(title: const Text('Tasks'), centerTitle: true),
       body: ValueListenableBuilder(
         valueListenable: tasksBox.listenable(),
         builder: (context, Box<Task> box, _) {
@@ -135,15 +202,13 @@ class _TasksPageState extends State<TasksPage> {
             padding: const EdgeInsets.all(12),
             itemBuilder: (context, index) {
               final task = userTasks[index];
-
               return Slidable(
                 key: Key(task.key.toString()),
                 endActionPane: ActionPane(
                   motion: const DrawerMotion(),
                   children: [
                     SlidableAction(
-                      onPressed:
-                          (_) => _showTaskDialog(task: task, index: index),
+                      onPressed: (_) => _showTaskDialog(task: task),
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                       icon: Icons.edit,
@@ -151,8 +216,8 @@ class _TasksPageState extends State<TasksPage> {
                     ),
                     SlidableAction(
                       onPressed: (_) {
-                        task.delete();
-                        setState(() {});
+                        task.delete(); // Delete the task from Hive
+                        setState(() {}); // Rebuild the UI
                       },
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
@@ -161,33 +226,58 @@ class _TasksPageState extends State<TasksPage> {
                     ),
                   ],
                 ),
-                child: ListTile(
-                  tileColor:
-                      task.done ?? false
-                          ? Colors.green.shade100
-                          : AppColors.primaryLight,
-                  title: Text(
-                    task.title,
-                    style: TextStyle(
-                      decoration:
-                          (task.done ?? false)
-                              ? TextDecoration.lineThrough
-                              : null,
+                child: Card(
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  color:
+                      (task.done ?? false)
+                          ? Colors.green.shade50
+                          : Theme.of(context).scaffoldBackgroundColor,
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
                     ),
+                    title: Text(
+                      task.title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        decoration:
+                            (task.done ?? false)
+                                ? TextDecoration.lineThrough
+                                : null,
+                        color: Theme.of(context).textTheme.bodyLarge!.color,
+                      ),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        '📅 ${DateFormat.yMMMd().format(task.date)} • 🔥 ${task.priority}',
+                        style: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).textTheme.bodySmall!.color?.withOpacity(0.8),
+                        ),
+                      ),
+                    ),
+                    trailing: Checkbox(
+                      value: task.done,
+                      onChanged: (value) {
+                        task.done = value!;
+                        task.save(); // Save the updated status to Hive
+                        setState(() {}); // Rebuild the UI
+                      },
+                    ),
+                    onTap:
+                        () => setState(() {
+                          if (task.done != null) {
+                            task.done = !task.done!;
+                          }
+                        }),
                   ),
-                  subtitle: Text(
-                    'Due: ${DateFormat.yMMMd().format(task.date)}',
-                  ),
-                  trailing: Checkbox(
-                    value: task.done,
-                    onChanged: (value) {
-                      task.done = value!;
-                      task.save();
-                      setState(() {});
-                    },
-                  ),
-                  onTap:
-                      () => setState(() => task.done = !(task.done ?? false)),
                 ),
               );
             },
@@ -196,6 +286,7 @@ class _TasksPageState extends State<TasksPage> {
       ),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
+        color: Theme.of(context).colorScheme.surfaceVariant,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -205,27 +296,11 @@ class _TasksPageState extends State<TasksPage> {
             ),
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () {
-                final tasks =
-                    tasksBox.values
-                        .where((task) => task.userId == currentUser.uid)
-                        .toList();
-                if (tasks.isNotEmpty) _showTaskDialog(task: tasks.first);
-              },
+              onPressed: () => _selectTaskToEditOrDelete('Edit'),
             ),
             IconButton(
               icon: const Icon(Icons.delete),
-              onPressed: () {
-                final keys =
-                    tasksBox.keys.where((key) {
-                      final task = tasksBox.get(key);
-                      return task?.userId == currentUser.uid;
-                    }).toList();
-                for (final key in keys) {
-                  tasksBox.delete(key);
-                }
-                setState(() {});
-              },
+              onPressed: () => _selectTaskToEditOrDelete('Delete'),
             ),
           ],
         ),

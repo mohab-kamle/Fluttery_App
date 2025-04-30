@@ -8,6 +8,7 @@ import 'package:flutter_at_akira_menai/providers/theme_provider.dart';
 import 'package:flutter_at_akira_menai/widgets/qoutes_services.dart';
 import 'package:flutter_at_akira_menai/widgets/themes.dart';
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
@@ -24,7 +25,7 @@ class _HomePageState extends State<HomePage> {
   int numberOfCompletedHabits = 0;
   int numberOfTotalHabits = Hive.box<Habit>('habits').length;
   double habitProgress = 0.0;
-  List<Task> todayTasks = []; // List to store tasks completed today
+  List<Task> todayTasks = [];
   late int pomoHours = 0;
   late int pomoMinutes = 0;
 
@@ -84,13 +85,7 @@ class _HomePageState extends State<HomePage> {
     final today = DateTime.now();
     final tasksToday =
         box.values
-            .cast<Task>()
-            .where(
-              (task) =>
-                  task.date.year == today.year &&
-                  task.date.month == today.month &&
-                  task.date.day == today.day,
-            )
+            .where((task) => isSameDay(task.date, today) && task.done == true)
             .toList();
     setState(() {
       todayTasks = tasksToday;
@@ -100,6 +95,12 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final taskBox = Hive.box<Task>('tasks');
+    final today = DateTime.now();
+    final allTodayTasks =
+        taskBox.values.where((task) => isSameDay(task.date, today)).toList();
+    final completedToday =
+        allTodayTasks.where((task) => task.done == true).toList();
 
     return Scaffold(
       body: RefreshIndicator(
@@ -142,7 +143,7 @@ class _HomePageState extends State<HomePage> {
                           const SizedBox(height: 12),
                           Text(
                             quote!,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontStyle: FontStyle.italic,
                               fontSize: 16,
                             ),
@@ -167,8 +168,6 @@ class _HomePageState extends State<HomePage> {
                                 padding: const EdgeInsets.all(16),
                                 child: Center(
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
                                     children: [
                                       Text(
                                         getFormattedDate(),
@@ -180,13 +179,10 @@ class _HomePageState extends State<HomePage> {
                                       const SizedBox(height: 15),
                                       Column(
                                         spacing: 10,
-                                        mainAxisSize: MainAxisSize.max,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
                                         children: [
                                           _summaryItem(
                                             Icons.check_circle,
-                                            '${todayTasks.length} Tasks Today',
+                                            '${allTodayTasks.length} Tasks Today',
                                           ),
                                           _summaryItem(
                                             Icons.access_time,
@@ -219,20 +215,22 @@ class _HomePageState extends State<HomePage> {
                                     width: 120,
                                     child: CircularProgressIndicator(
                                       value:
-                                          todayTasks.length /
-                                          (todayTasks.length +
-                                              3), // Example: Assume max 5 tasks
+                                          allTodayTasks.isEmpty
+                                              ? 0
+                                              : completedToday.length /
+                                                  allTodayTasks.length,
                                       strokeWidth: 10,
                                       backgroundColor: Colors.grey.shade300,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.blue,
-                                      ),
+                                      valueColor:
+                                          const AlwaysStoppedAnimation<Color>(
+                                            Colors.blue,
+                                          ),
                                     ),
                                   ),
                                   Text(
-                                    "${todayTasks.length} / ${todayTasks.length + 5} \nTasks",
+                                    "${completedToday.length} / ${allTodayTasks.length} \nTasks",
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                     ),
@@ -259,7 +257,7 @@ class _HomePageState extends State<HomePage> {
                                   Text(
                                     '$numberOfCompletedHabits/$numberOfTotalHabits\nHabits',
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                     ),
@@ -305,37 +303,52 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 20),
                           const SizedBox(height: 30),
                           Text(
                             "Recent Activity",
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 12),
-                          todayTasks.isEmpty
-                              ? Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Row(
-                                    children: const [
-                                      Icon(Icons.info, color: Colors.grey),
-                                      SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          "No tasks completed today yet.",
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ),
-                                    ],
+                          ValueListenableBuilder(
+                            valueListenable:
+                                Hive.box<Task>('tasks').listenable(),
+                            builder: (context, Box<Task> box, _) {
+                              final today = DateTime.now();
+                              final completedToday =
+                                  box.values
+                                      .where(
+                                        (task) =>
+                                            task.done == true &&
+                                            isSameDay(task.date, today),
+                                      )
+                                      .toList();
+
+                              if (completedToday.isEmpty) {
+                                return Card(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                ),
-                              )
-                              : Column(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Row(
+                                      children: const [
+                                        Icon(Icons.info, color: Colors.grey),
+                                        SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            "No tasks completed today yet.",
+                                            style: TextStyle(fontSize: 14),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              return Column(
                                 children:
-                                    todayTasks.map((task) {
+                                    completedToday.map((task) {
                                       return Card(
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
@@ -346,15 +359,15 @@ class _HomePageState extends State<HomePage> {
                                           padding: const EdgeInsets.all(16.0),
                                           child: Row(
                                             children: [
-                                              Icon(
+                                              const Icon(
                                                 Icons.celebration,
                                                 color: Colors.green,
                                               ),
-                                              SizedBox(width: 12),
+                                              const SizedBox(width: 12),
                                               Expanded(
                                                 child: Text(
                                                   "Completed: ${task.title}",
-                                                  style: TextStyle(
+                                                  style: const TextStyle(
                                                     fontSize: 14,
                                                   ),
                                                 ),
@@ -364,7 +377,9 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                       );
                                     }).toList(),
-                              ),
+                              );
+                            },
+                          ),
                         ],
                       ),
             ),
