@@ -20,7 +20,10 @@ class Task extends HiveObject {
   String priority;
 
   @HiveField(5)
-  bool completed;
+  String? userId;
+
+  @HiveField(6)
+  bool? done;
 
   Task({
     required this.title,
@@ -28,6 +31,7 @@ class Task extends HiveObject {
     required this.date,
     required this.time,
     required this.priority,
-    this.completed = false,
+    this.userId,
+    this.done = false,
   });
 }

@@ -4,9 +4,11 @@ import 'package:flutter_at_akira_menai/change_password_page.dart';
 import 'package:flutter_at_akira_menai/signup_page.dart';
 import 'package:flutter_at_akira_menai/widgets/auth_manager.dart';
 import 'package:flutter_at_akira_menai/widgets/awsome_material_banner.dart';
+import 'package:flutter_at_akira_menai/widgets/notification_service.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_at_akira_menai/providers/theme_provider.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -17,10 +19,17 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool? _notificationsEnabled;
   final String _appVersion = '1.0.0';
+  late final NotificationService _notificationService;
+  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
+  @override
   @override
   void initState() {
     super.initState();
+    _notificationService = NotificationService(
+      _flutterLocalNotificationsPlugin,
+    );
     _loadSettings();
   }
 
@@ -36,8 +45,12 @@ class _SettingsPageState extends State<SettingsPage> {
         _notificationsEnabled = true;
       });
       if (context.mounted) {
-        awesomeMaterialBanner(context: context, title: 
-        'oh snap!', message: 'Error loading settings: $e', contentType: ContentType.failure);
+        awesomeMaterialBanner(
+          context: context,
+          title: 'Oh snap!',
+          message: 'Error loading settings: $e',
+          contentType: ContentType.failure,
+        );
       }
     }
   }
@@ -47,16 +60,32 @@ class _SettingsPageState extends State<SettingsPage> {
       final settingsBox = Hive.box('settings');
       if (notificationsEnabled != null) {
         settingsBox.put('notificationsEnabled', notificationsEnabled);
+        _notificationService.setNotificationsEnabled(notificationsEnabled);
       }
       if (darkMode != null) {
         settingsBox.put('darkMode', darkMode);
       }
     } catch (e) {
       if (context.mounted) {
-        awesomeMaterialBanner(context: context, title:
-        'oh snap!', message: 'Error saving settings: $e', contentType: ContentType.failure);
+        awesomeMaterialBanner(
+          context: context,
+          title: 'Oh snap!',
+          message: 'Error saving settings: $e',
+          contentType: ContentType.failure,
+        );
       }
     }
+  }
+
+  void _showSnackBar(bool isEnabled) {
+    final snackBar = SnackBar(
+      content: Text(
+        isEnabled ? 'Notifications enabled' : 'Notifications disabled',
+      ),
+      duration: const Duration(seconds: 2),
+      behavior: SnackBarBehavior.floating,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void _signOut() {
@@ -88,7 +117,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     if (context.mounted) {
                       awesomeMaterialBanner(
                         context: context,
-                        title: 'oh snap!',
+                        title: 'Oh snap!',
                         message: 'Error signing out: $e',
                         contentType: ContentType.failure,
                       );
@@ -107,26 +136,30 @@ class _SettingsPageState extends State<SettingsPage> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Settings'), centerTitle: true),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Dark Mode
+          // Dark Mode Toggle
           SwitchListTile(
             title: const Text('Dark Mode'),
             value: isDarkMode,
             onChanged: (value) {
               themeProvider.toggleTheme(value);
               _saveSettings(darkMode: value);
+              // // test to notifications
+              // _notificationService.showInstantNotification(
+              //   101,
+              //   'Theme Changed',
+              //   value ? 'Dark Mode Enabled' : 'Light Mode Enabled',
+              // );
+              // // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
             },
-            secondary: Icon(
-              isDarkMode ? Icons.dark_mode : Icons.light_mode,
-            ),
+            secondary: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode),
           ),
           const Divider(),
+
+          // Notifications Toggle
           SwitchListTile(
             title: const Text('Notifications'),
             value: _notificationsEnabled ?? true,
@@ -135,17 +168,16 @@ class _SettingsPageState extends State<SettingsPage> {
                 _notificationsEnabled = value;
               });
               _saveSettings(notificationsEnabled: value);
+              _showSnackBar(value); //
             },
-            secondary: Icon(
-              Icons.notifications,
-            ),
+            secondary: const Icon(Icons.notifications),
           ),
           const Divider(),
+
+          // Change Password
           ListTile(
             title: const Text('Change Password'),
-            leading: Icon(
-              Icons.lock_reset,
-            ),
+            leading: const Icon(Icons.lock_reset),
             onTap: () {
               Navigator.push(
                 context,
@@ -156,14 +188,16 @@ class _SettingsPageState extends State<SettingsPage> {
             },
           ),
           const Divider(),
+
+          // App Version
           ListTile(
             title: const Text('App Version'),
             subtitle: Text(_appVersion),
-            leading: Icon(
-              Icons.info,
-            ),
+            leading: const Icon(Icons.info),
           ),
           const Divider(),
+
+          // Sign Out
           ListTile(
             title: const Text('Sign Out'),
             leading: const Icon(Icons.logout, color: Colors.red),

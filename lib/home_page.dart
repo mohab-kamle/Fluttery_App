@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_at_akira_menai/pomodoro_page.dart';
 import 'package:flutter_at_akira_menai/habits_page.dart';
 import 'package:flutter_at_akira_menai/main.dart';
 import 'package:flutter_at_akira_menai/models/habit_model.dart';
@@ -6,7 +7,7 @@ import 'package:flutter_at_akira_menai/models/task_model.dart';
 import 'package:flutter_at_akira_menai/providers/theme_provider.dart';
 import 'package:flutter_at_akira_menai/widgets/qoutes_services.dart';
 import 'package:flutter_at_akira_menai/widgets/themes.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
@@ -21,71 +22,146 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String? quote;
   int numberOfCompletedHabits = 0;
-  int numberOfTotalHabits = Hive.box<Habit>('habits').length;
+  int numberOfTotalHabits = 0;
   double habitProgress = 0.0;
-  List<Task> todayTasks = []; // List to store tasks completed today
+  List<Task> todayTasks = [];
+  int pomoHours = 0;
+  int pomoMinutes = 0;
 
   @override
   void initState() {
     super.initState();
-    calculateCompletedHabits();
-    loadQuote();
-    loadTodayTasks(); // Load tasks completed today
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Hive.openBox<Habit>('habits');
+      await Hive.openBox<Task>('tasks');
+      await Hive.openBox("pomodoro");
+      await calculateCompletedHabits();
+      await loadQuote();
+      await loadPomodoroTime();
+      loadTodayTasks();
+    });
+  }
+
+  bool isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  Future<void> loadPomodoroTime() async {
+    final box = Hive.box("pomodoro");
+    final totalFocusTime = box.get("totalFocusTime") ?? 0;
+    final totalRestTime = box.get("totalRestTime") ?? 0;
+    final totalMinutes = (totalFocusTime + totalRestTime) ~/ 60;
+    if (!mounted) return;
+    setState(() {
+      pomoHours = totalMinutes ~/ 60;
+      pomoMinutes = totalMinutes % 60;
+    });
   }
 
   Future<void> calculateCompletedHabits() async {
+    final habitBox = Hive.box<Habit>('habits');
     int completedCount = 0;
-    for (int i = 0; i < numberOfTotalHabits; i++) {
-      final habit = Hive.box<Habit>('habits').getAt(i);
+    for (int i = 0; i < habitBox.length; i++) {
+      final habit = habitBox.getAt(i);
       if (habit != null &&
           habit.lastCompletedDate != null &&
-          habit.lastCompletedDate!.day == DateTime.now().day) {
+          isSameDay(habit.lastCompletedDate!, DateTime.now())) {
         completedCount++;
       }
     }
+    if (!mounted) return;
     setState(() {
+      numberOfTotalHabits = habitBox.length;
+      numberOfCompletedHabits = completedCount;
       habitProgress =
           numberOfTotalHabits > 0 ? completedCount / numberOfTotalHabits : 0.0;
-      numberOfTotalHabits = Hive.box<Habit>('habits').length;
-      numberOfCompletedHabits = completedCount;
     });
   }
 
   Future<void> loadQuote() async {
     final fetchedQuote = await QuoteService.fetchQuoteOfTheDay();
+    if (!mounted) return;
     setState(() {
       quote = fetchedQuote ?? 'Stay motivated!';
     });
   }
 
   void loadTodayTasks() {
-    final box = Hive.box('tasks');
+    final box = Hive.box<Task>('tasks');
     final today = DateTime.now();
     final tasksToday =
         box.values
-            .cast<Task>()
-            .where(
-              (task) =>
-                  task.date.year == today.year &&
-                  task.date.month == today.month &&
-                  task.date.day == today.day,
-            )
+            .where((task) => isSameDay(task.date, today) && task.done == true)
             .toList();
+    if (!mounted) return;
     setState(() {
       todayTasks = tasksToday;
     });
   }
 
+  String getGreetingMessage() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) return "Good Morning!";
+    if (hour >= 12 && hour < 17) return "Good Afternoon!";
+    if (hour >= 17 && hour < 21) return "Good Evening!";
+    return "Good Night!";
+  }
+
+  String getFormattedDate() {
+    return DateFormat.yMMMMEEEEd().format(DateTime.now());
+  }
+
+  Widget _summaryItem(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [Icon(icon, size: 20), const SizedBox(width: 8), Text(text)],
+      ),
+    );
+  }
+
+  Widget _quickActionButton(
+    IconData icon,
+    String label,
+    VoidCallback onTap,
+    BuildContext context,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Theme.of(context).primaryColor),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 28),
+            const SizedBox(height: 4),
+            Text(label),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final taskBox = Hive.box<Task>('tasks');
+    final today = DateTime.now();
+    final allTodayTasks =
+        taskBox.values.where((task) => isSameDay(task.date, today)).toList();
+    final completedToday =
+        allTodayTasks.where((task) => task.done == true).toList();
 
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
           await loadQuote();
           await calculateCompletedHabits();
-          loadTodayTasks(); // Refresh tasks on pull-to-refresh
+          loadTodayTasks();
+          await loadPomodoroTime();
         },
         child: ListView(
           children: [
@@ -120,7 +196,7 @@ class _HomePageState extends State<HomePage> {
                           const SizedBox(height: 12),
                           Text(
                             quote!,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontStyle: FontStyle.italic,
                               fontSize: 16,
                             ),
@@ -145,8 +221,6 @@ class _HomePageState extends State<HomePage> {
                                 padding: const EdgeInsets.all(16),
                                 child: Center(
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         getFormattedDate(),
@@ -157,22 +231,15 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       const SizedBox(height: 15),
                                       Column(
-                                        mainAxisSize: MainAxisSize.max,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
                                         children: [
                                           _summaryItem(
                                             Icons.check_circle,
-                                            '${todayTasks.length} Tasks Today',
+                                            '${allTodayTasks.length} Tasks Today',
                                           ),
                                           _summaryItem(
-                                            Icons.timer,
-                                            'Next Pomodoro: 2:00 PM',
-                                          ), // Placeholder
-                                          _summaryItem(
                                             Icons.access_time,
-                                            'Time Tracked: 1h 25m',
-                                          ), // Placeholder
+                                            'Time Tracked: ${pomoHours}h ${pomoMinutes}m',
+                                          ),
                                         ],
                                       ),
                                     ],
@@ -192,59 +259,21 @@ class _HomePageState extends State<HomePage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  SizedBox(
-                                    height: 120,
-                                    width: 120,
-                                    child: CircularProgressIndicator(
-                                      value:
-                                          todayTasks.length /
-                                          (todayTasks.length + 3), // Example: Assume max 5 tasks
-                                      strokeWidth: 10,
-                                      backgroundColor: Colors.grey.shade300,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.blue,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    "${todayTasks.length} / ${todayTasks.length + 5} \nTasks",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
+                              _buildProgressCircle(
+                                context,
+                                completedToday.length,
+                                allTodayTasks.length,
+                                'Tasks',
+                                Colors.blue,
                               ),
-                              Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  SizedBox(
-                                    height: 120,
-                                    width: 120,
-                                    child: CircularProgressIndicator(
-                                      value: habitProgress,
-                                      strokeWidth: 10,
-                                      backgroundColor: Colors.grey.shade300,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        themeProvider.isDarkMode
-                                            ? Colors.amberAccent
-                                            : Colors.amberAccent.shade700,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '$numberOfCompletedHabits/$numberOfTotalHabits\nHabits',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
+                              _buildProgressCircle(
+                                context,
+                                numberOfCompletedHabits,
+                                numberOfTotalHabits,
+                                'Habits',
+                                themeProvider.isDarkMode
+                                    ? Colors.amberAccent
+                                    : Colors.amberAccent.shade700,
                               ),
                             ],
                           ),
@@ -261,19 +290,22 @@ class _HomePageState extends State<HomePage> {
                                     MaterialPageRoute(
                                       builder:
                                           (context) => HabitsPage(
-                                            notificationService: notificationService,
+                                            notificationService:
+                                                notificationService,
                                           ),
                                     ),
                                   );
                                 },
                                 context,
                               ),
-                              _quickActionButton(
-                                Icons.timer,
-                                'Pomodoro',
-                                () {},
-                                context,
-                              ),
+                              _quickActionButton(Icons.timer, 'Pomodoro', () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PomodoroTimer(),
+                                  ),
+                                );
+                              }, context),
                               _quickActionButton(
                                 Icons.bar_chart,
                                 'Stats',
@@ -282,66 +314,195 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 20),
                           const SizedBox(height: 30),
                           Text(
                             "Recent Activity",
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 12),
-                          todayTasks.isEmpty
-                              ? Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Row(
-                                    children: const [
-                                      Icon(Icons.info, color: Colors.grey),
-                                      SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          "No tasks completed today yet.",
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ),
-                                    ],
+                          ValueListenableBuilder(
+                            valueListenable:
+                                Hive.box<Task>('tasks').listenable(),
+                            builder: (context, Box<Task> taskBox, _) {
+                              final completedTasksToday =
+                                  taskBox.values
+                                      .where(
+                                        (task) =>
+                                            task.done == true &&
+                                            isSameDay(task.date, today),
+                                      )
+                                      .toList();
+
+                              // Get completed habits
+                              final habitBox = Hive.box<Habit>('habits');
+                              final completedHabitsToday =
+                                  habitBox.values
+                                      .where(
+                                        (habit) =>
+                                            habit.lastCompletedDate != null &&
+                                            isSameDay(
+                                              habit.lastCompletedDate!,
+                                              today,
+                                            ),
+                                      )
+                                      .toList();
+
+                              if (completedTasksToday.isEmpty &&
+                                  completedHabitsToday.isEmpty) {
+                                return Card(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                ),
-                              )
-                              : Column(
-                                children:
-                                    todayTasks.map((task) {
-                                      return Card(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Row(
+                                      children: const [
+                                        Icon(Icons.info, color: Colors.grey),
+                                        SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            "No tasks or habits completed today yet.",
+                                            style: TextStyle(fontSize: 14),
                                           ),
                                         ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(16.0),
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                Icons.celebration,
-                                                color: Colors.green,
-                                              ),
-                                              SizedBox(width: 12),
-                                              Expanded(
-                                                child: Text(
-                                                  "Completed: ${task.title}",
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                  ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              return Column(
+                                children: [
+                                  // Completed Tasks Section
+                                  if (completedTasksToday.isNotEmpty) ...[
+                                    Card(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Row(
+                                          children: const [
+                                            Icon(
+                                              Icons.task_alt,
+                                              color: Colors.blue,
+                                            ),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                "Completed Tasks Today",
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
                                               ),
-                                            ],
-                                          ),
+                                            ),
+                                          ],
                                         ),
-                                      );
-                                    }).toList(),
-                              ),
+                                      ),
+                                    ),
+                                    Column(
+                                      children:
+                                          completedTasksToday.map((task) {
+                                            return Card(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(
+                                                  16.0,
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.celebration,
+                                                      color: Colors.green,
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Text(
+                                                        "Completed: ${task.title}",
+                                                        style: const TextStyle(
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                    ),
+                                  ],
+
+                                  // Completed Habits Section
+                                  if (completedHabitsToday.isNotEmpty) ...[
+                                    const SizedBox(height: 20),
+                                    Card(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Row(
+                                          children: const [
+                                            Icon(
+                                              Icons.holiday_village,
+                                              color: Colors.blue,
+                                            ),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                "Completed Habits Today",
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    Column(
+                                      children:
+                                          completedHabitsToday.map((habit) {
+                                            return Card(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(
+                                                  16.0,
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.check_circle,
+                                                      color: Colors.deepOrangeAccent,
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Text(
+                                                        "Completed: ${habit.title}",
+                                                        style: const TextStyle(
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                    ),
+                                  ],
+                                ],
+                              );
+                            },
+                          ),
                         ],
                       ),
             ),
@@ -350,69 +511,33 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-}
 
-String getGreetingMessage() {
-  final hour = DateTime.now().hour;
-  if (hour >= 5 && hour < 12) {
-    return "Good Morning!";
-  } else if (hour >= 12 && hour < 17) {
-    return "Good Afternoon!";
-  } else if (hour >= 17 && hour < 21) {
-    return "Good Evening!";
-  } else {
-    return "Good Night!";
-  }
-}
-
-String getFormattedDate() {
-  return DateFormat('EEEE, MMMM d').format(DateTime.now());
-}
-
-Widget _summaryItem(IconData icon, String label) {
-  return Column(
-    children: [
-      Icon(icon, size: 28),
-      const SizedBox(height: 4),
-      Text(label, style: const TextStyle(fontSize: 12)),
-    ],
-  );
-}
-
-Widget _quickActionButton(
-  IconData icon,
-  String label,
-  VoidCallback onTap,
-  BuildContext context,
-) {
-  final themeProvider = Provider.of<ThemeProvider>(context);
-  return Expanded(
-    child: GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color:
-                themeProvider.isDarkMode
-                    ? AppColors.primaryDark
-                    : AppColors.primaryLight,
+  Widget _buildProgressCircle(
+    BuildContext context,
+    int completed,
+    int total,
+    String label,
+    Color color,
+  ) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        SizedBox(
+          height: 120,
+          width: 120,
+          child: CircularProgressIndicator(
+            value: total == 0 ? 0 : completed / total,
+            strokeWidth: 10,
+            backgroundColor: Colors.grey.shade300,
+            valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
-          color:
-              themeProvider.isDarkMode
-                  ? AppColors.surfaceDark
-                  : AppColors.surfaceLight,
-          borderRadius: BorderRadius.circular(12),
         ),
-        child: Column(
-          children: [
-            Icon(icon, size: 24),
-            const SizedBox(height: 4),
-            Text(label, style: const TextStyle(fontSize: 12)),
-          ],
+        Text(
+          "$completed / $total\n$label",
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-      ),
-    ),
-  );
+      ],
+    );
+  }
 }

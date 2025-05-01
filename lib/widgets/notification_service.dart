@@ -1,8 +1,10 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:hive/hive.dart';
 
 class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin;
+  bool _notificationsEnabled = true; // ← مبدئيًا مفعل
 
   NotificationService(this._flutterLocalNotificationsPlugin);
 
@@ -17,6 +19,17 @@ class NotificationService {
     final InitializationSettings initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+    // Load saved setting from Hive
+    final settingsBox = Hive.box('settings');
+    _notificationsEnabled = settingsBox.get(
+      'notificationsEnabled',
+      defaultValue: true,
+    );
+  }
+
+  void setNotificationsEnabled(bool enabled) {
+    _notificationsEnabled = enabled;
   }
 
   Future<void> scheduleNotification(
@@ -25,6 +38,7 @@ class NotificationService {
     String body,
     DateTime scheduledTime,
   ) async {
+    if (!_notificationsEnabled) return;
     await _flutterLocalNotificationsPlugin.zonedSchedule(
       id,
       title,
@@ -32,9 +46,9 @@ class NotificationService {
       tz.TZDateTime.from(scheduledTime, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'habbit_channel',
-          'Habbit Reminders',
-          channelDescription: 'reminder for your habits',
+          'habit_channel',
+          'Habit Reminders',
+          channelDescription: 'Reminder for your habits',
           importance: Importance.max,
           priority: Priority.high,
         ),
@@ -49,6 +63,7 @@ class NotificationService {
     String body,
     DateTime scheduledTime,
   ) async {
+    if (!_notificationsEnabled) return;
     await _flutterLocalNotificationsPlugin.zonedSchedule(
       id,
       title,
@@ -64,34 +79,31 @@ class NotificationService {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      matchDateTimeComponents:
-          DateTimeComponents.time, // 🔁 Repeat daily at time
+      matchDateTimeComponents: DateTimeComponents.time,
     );
   }
-  Future<void> showInstantNotification(
-  int id,
-  String title,
-  String body,
-) async {
-  final NotificationDetails notificationDetails = NotificationDetails(
-    android: AndroidNotificationDetails(
-      'habit_channel',
-      'Habit Reminders',
-      channelDescription: 'Instant habit notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-      styleInformation: BigTextStyleInformation(
-        body,      ),
-    ),
-  );
 
-  await _flutterLocalNotificationsPlugin.show(
-    id,
-    title,
-    body,
-    notificationDetails,
-  );
-}
+  Future<void> showInstantNotification(
+    int id,
+    String title,
+    String body,
+  ) async {
+    if (!_notificationsEnabled) return;
+    await _flutterLocalNotificationsPlugin.show(
+      id,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'habit_channel',
+          'Habit Reminders',
+          channelDescription: 'Instant habit notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+    );
+  }
 
   Future<void> cancelNotification(int id) async {
     await _flutterLocalNotificationsPlugin.cancel(id);

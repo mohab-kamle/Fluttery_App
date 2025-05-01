@@ -20,7 +20,17 @@ late NotificationService notificationService;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await Hive.initFlutter();
+  // 3. Initialize Hive
+  Hive.registerAdapter(TaskAdapter());
+  Hive.registerAdapter(HabitAdapter());
+  await Hive.openBox('images');
+  await Hive.openBox('settings');
+  await Hive.openBox('themeBox');
+  await Hive.openBox<Habit>('habits');
+  await Hive.openBox<Task>('tasks');
+  await Hive.openBox("pomodoro");
+  
   // 1. Initialize time zone database once
   tz.initializeTimeZones();
 
@@ -28,16 +38,7 @@ Future<void> main() async {
   notificationService = NotificationService(FlutterLocalNotificationsPlugin());
   await notificationService.initialize();
 
-  // 3. Initialize Hive
-  await Hive.initFlutter();
-  Hive.registerAdapter(TaskAdapter());
-  Hive.registerAdapter(HabitAdapter());
-  await Hive.openBox('images');
-  await Hive.openBox('settings');
-  await Hive.openBox('tasks');
-  await Hive.openBox('themeBox');
-  await Hive.openBox<Habit>('habits');
-
+  
   // 4. Load env vars & Firebase
   await dotenv.load(fileName: '.env');
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -63,9 +64,10 @@ class MainApp extends StatelessWidget {
       darkTheme: darkTheme,
       themeMode: themeProvider.themeMode,
       debugShowCheckedModeBanner: false,
-      home: FirebaseAuth.instance.currentUser != null
-          ? const NavigationPage()
-          : const OnBoarding(),
+      home:
+          FirebaseAuth.instance.currentUser != null
+              ? const NavigationPage()
+              : const OnBoarding(),
     );
   }
 }

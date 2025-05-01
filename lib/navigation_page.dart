@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_at_akira_menai/Pomodoro_page.dart';
+import 'package:flutter_at_akira_menai/pomodoro_page.dart';
 import 'package:flutter_at_akira_menai/ai_chat_bot.dart';
 import 'package:flutter_at_akira_menai/home_page.dart';
 import 'package:flutter_at_akira_menai/user_profile.dart';
@@ -23,8 +23,8 @@ class _NavigationPageState extends State<NavigationPage> {
 
   final List<Widget> _pages = [
     const HomePage(), // Replace with your HomeScreen()
-    const Taskspage(),
-    const PomodoroPage(), // Replace with your PomodoroPage
+    const TasksPage(),
+    const PomodoroTimer(), // Replace with your PomodoroPage
     const UserProfile(),
   ];
 

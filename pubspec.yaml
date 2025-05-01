@@ -36,6 +36,7 @@ dependencies:
   flutter_local_notifications: ^19.1.0
   flutter_timezone: ^4.1.0
   fl_chart: ^0.71.0
+  audioplayers: ^6.4.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -62,6 +63,7 @@ flutter_native_splash:
 flutter:
   uses-material-design: true
   assets:
+    - assets/
     - assets/images/
     - assets/animations/
     - .env
