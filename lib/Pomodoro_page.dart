@@ -4,19 +4,6 @@ import 'dart:async';
 import 'package:hive/hive.dart';
 import 'package:audioplayers/audioplayers.dart';
 
-class PomodoroPage extends StatelessWidget {
-  const PomodoroPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: PomodoroTimer(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-
 class PomodoroTimer extends StatefulWidget {
   const PomodoroTimer({super.key});
 
