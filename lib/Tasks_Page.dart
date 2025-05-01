@@ -1,11 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_at_akira_menai/widgets/themes.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-
 import '../models/task_model.dart';
-import '../widgets/themes.dart';
 
 class TasksPage extends StatefulWidget {
   const TasksPage({super.key});
@@ -23,6 +22,7 @@ class _TasksPageState extends State<TasksPage> {
     tasksBox = Hive.box<Task>('tasks');
   }
 
+  // Show Task Dialog
   void _showTaskDialog({Task? task}) {
     final titleController = TextEditingController(text: task?.title ?? '');
     final descriptionController = TextEditingController(
@@ -80,7 +80,7 @@ class _TasksPageState extends State<TasksPage> {
                             }
                           },
                         ),
-                        DropdownButtonFormField<String>(
+                        DropdownButtonFormField<String>(  
                           value: selectedPriority,
                           decoration: const InputDecoration(
                             labelText: 'Priority',
@@ -95,8 +95,9 @@ class _TasksPageState extends State<TasksPage> {
                                   )
                                   .toList(),
                           onChanged: (value) {
-                            if (value != null)
+                            if (value != null) {
                               setModalState(() => selectedPriority = value);
+                            }
                           },
                         ),
                       ],
@@ -111,8 +112,9 @@ class _TasksPageState extends State<TasksPage> {
               ElevatedButton(
                 onPressed: () {
                   final userId = FirebaseAuth.instance.currentUser?.uid;
-                  if (userId == null || titleController.text.trim().isEmpty)
+                  if (userId == null || titleController.text.trim().isEmpty) {
                     return;
+                  }
 
                   final newTask = Task(
                     userId: userId,
@@ -140,6 +142,7 @@ class _TasksPageState extends State<TasksPage> {
     );
   }
 
+  // Select Task to Edit or Delete
   void _selectTaskToEditOrDelete(String action) {
     final currentUser = FirebaseAuth.instance.currentUser;
     final userTasks =
@@ -178,131 +181,162 @@ class _TasksPageState extends State<TasksPage> {
     );
   }
 
+  // Build Method
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return const Center(child: Text('Not logged in'));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tasks'), centerTitle: true),
-      body: ValueListenableBuilder(
-        valueListenable: tasksBox.listenable(),
-        builder: (context, Box<Task> box, _) {
-          final userTasks =
-              box.values
-                  .where((task) => task.userId == currentUser.uid)
-                  .toList();
-
-          if (userTasks.isEmpty) {
-            return const Center(child: Text('No tasks found.'));
-          }
-
-          return ListView.builder(
-            itemCount: userTasks.length,
-            padding: const EdgeInsets.all(12),
-            itemBuilder: (context, index) {
-              final task = userTasks[index];
-              return Slidable(
-                key: Key(task.key.toString()),
-                endActionPane: ActionPane(
-                  motion: const DrawerMotion(),
-                  children: [
-                    SlidableAction(
-                      onPressed: (_) => _showTaskDialog(task: task),
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      icon: Icons.edit,
-                      label: 'Edit',
-                    ),
-                    SlidableAction(
-                      onPressed: (_) {
-                        task.delete(); // Delete the task from Hive
-                        setState(() {}); // Rebuild the UI
-                      },
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      icon: Icons.delete,
-                      label: 'Delete',
-                    ),
-                  ],
-                ),
-                child: Card(
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  color:
-                      (task.done ?? false)
-                          ? Colors.green.shade50
-                          : Theme.of(context).scaffoldBackgroundColor,
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    title: Text(
-                      task.title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        decoration:
-                            (task.done ?? false)
-                                ? TextDecoration.lineThrough
-                                : null,
-                        color: Theme.of(context).textTheme.bodyLarge!.color,
-                      ),
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4.0),
-                      child: Text(
-                        '📅 ${DateFormat.yMMMd().format(task.date)} • 🔥 ${task.priority}',
-                        style: TextStyle(
-                          color: Theme.of(
-                            context,
-                          ).textTheme.bodySmall!.color?.withOpacity(0.8),
-                        ),
-                      ),
-                    ),
-                    trailing: Checkbox(
-                      value: task.done,
-                      onChanged: (value) {
-                        task.done = value!;
-                        task.save(); // Save the updated status to Hive
-                        setState(() {}); // Rebuild the UI
-                      },
-                    ),
-                    onTap:
-                        () => setState(() {
-                          if (task.done != null) {
-                            task.done = !task.done!;
-                          }
-                        }),
-                  ),
-                ),
-              );
-            },
-          );
-        },
+      appBar: AppBar(
+  title: const Text('My Tasks'),
+  centerTitle: true,
+  elevation: 3,
+  bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(50.0), // Height of the bottom section
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.add, size: 28 , color: AppColors.backgroundLight,),
+            onPressed: () => _showTaskDialog(),
+            tooltip: "Add Task",
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit_note, size: 28, color: AppColors.backgroundLight,),
+            onPressed: () => _selectTaskToEditOrDelete('Edit'),
+            tooltip: "Edit Task",
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, size: 28, color: AppColors.backgroundLight,),
+            onPressed: () => _selectTaskToEditOrDelete('Delete'),
+            tooltip: "Delete Task",
+          ),
+        ],
       ),
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        color: Theme.of(context).colorScheme.surfaceVariant,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+    ),
+  ),
+),
+
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            setState(() {});
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 70),
+            child: ValueListenableBuilder(
+              valueListenable: tasksBox.listenable(),
+              builder: (context, Box<Task> box, _) {
+                final userTasks = box.values
+                    .where((task) => task.userId == currentUser.uid)
+                    .toList();
+
+                if (userTasks.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      '🎉 No tasks yet!\nTap "+" to add one.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+  itemCount: userTasks.length,
+  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+  itemBuilder: (context, index) {
+    final task = userTasks[index];
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Slidable(
+        key: Key(task.key.toString()),
+        endActionPane: ActionPane(
+          motion: const DrawerMotion(),
           children: [
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => _showTaskDialog(),
+            SlidableAction(
+              onPressed: (_) => _showTaskDialog(task: task),
+              backgroundColor: Colors.indigo,
+              foregroundColor: Colors.white,
+              icon: Icons.edit,
+              label: 'Edit',
             ),
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () => _selectTaskToEditOrDelete('Edit'),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () => _selectTaskToEditOrDelete('Delete'),
+            SlidableAction(
+              onPressed: (_) {
+                task.delete();
+                setState(() {});
+              },
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              icon: Icons.delete,
+              label: 'Delete',
             ),
           ],
+        ),
+        child: Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          color: (task.done ?? false)
+              ? (Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.primaryDark
+                  : AppColors.primaryLight.withAlpha(220))
+              : (Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey.shade800
+                  : Colors.white),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16),
+            title: Text(
+              task.title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                decoration: (task.done ?? false)
+                    ? TextDecoration.lineThrough
+                    : null,
+                color: (task.done ?? false)
+                    ? (Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.white)
+                    : null,
+              ),
+            ),
+            subtitle: Text(
+              '${DateFormat.yMMMd().format(task.date)} • ${task.priority}',
+              style: TextStyle(
+                color: (Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white70
+                    : Colors.white70),
+              ),
+            ),
+            trailing: Checkbox.adaptive(
+              fillColor: WidgetStatePropertyAll(Colors.blue),
+              checkColor: Colors.white,
+              value: task.done,
+              onChanged: (value) {
+                task.done = value!;
+                task.save();
+                setState(() {});
+              },
+            ),
+            onTap: () {
+              task.done = !task.done!;
+              task.save();
+              setState(() {});
+            },
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+              },
+            ),
+          ),
         ),
       ),
     );

@@ -20,16 +20,8 @@ late NotificationService notificationService;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // 1. Initialize time zone database once
-  tz.initializeTimeZones();
-
-  // 2. Initialize NotificationService
-  notificationService = NotificationService(FlutterLocalNotificationsPlugin());
-  await notificationService.initialize();
-
-  // 3. Initialize Hive
   await Hive.initFlutter();
+  // 3. Initialize Hive
   Hive.registerAdapter(TaskAdapter());
   Hive.registerAdapter(HabitAdapter());
   await Hive.openBox('images');
@@ -38,6 +30,15 @@ Future<void> main() async {
   await Hive.openBox<Habit>('habits');
   await Hive.openBox<Task>('tasks');
   await Hive.openBox("pomodoro");
+  
+  // 1. Initialize time zone database once
+  tz.initializeTimeZones();
+
+  // 2. Initialize NotificationService
+  notificationService = NotificationService(FlutterLocalNotificationsPlugin());
+  await notificationService.initialize();
+
+  
   // 4. Load env vars & Firebase
   await dotenv.load(fileName: '.env');
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
