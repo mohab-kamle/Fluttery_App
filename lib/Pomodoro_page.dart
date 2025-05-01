@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:path/path.dart';
-
 class PomodoroPage extends StatelessWidget {
   const PomodoroPage({super.key});
 
@@ -16,6 +14,8 @@ class PomodoroPage extends StatelessWidget {
 }
 
 class PomodoroTimer extends StatefulWidget {
+  const PomodoroTimer({super.key});
+
   @override
   _PomodoroTimerState createState() => _PomodoroTimerState();
 }
