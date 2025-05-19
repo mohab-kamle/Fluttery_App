@@ -262,7 +262,7 @@ class _HomePageState extends State<HomePage> {
                               _buildProgressCircle(
                                 context,
                                 completedToday.length,
-                                allTodayTasks.length,
+                                allTodayTasks.length, // here the problem of showing 2 tasks even there are no tasks today
                                 'Tasks',
                                 Colors.blue,
                               ),
