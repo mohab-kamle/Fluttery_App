@@ -309,7 +309,7 @@ class _TasksPageState extends State<TasksPage> {
               style: TextStyle(
                 color: (Theme.of(context).brightness == Brightness.dark
                     ? Colors.white70
-                    : Colors.white70),
+                    : Colors.black54),
               ),
             ),
             trailing: Checkbox.adaptive(
